@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const EloRating = require('elo-rating');
 const fs = require('fs');
 
-const { userId } = require('./config.json');
+const { userId } = require('../config.json');
 const greedyPartitioning = require('../functions/greedyPartitioning');
 const currentPlayers = require('../lists/currentPlayers');
 const nameTable = require('../lists/nameTable');
