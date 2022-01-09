@@ -1,3 +1,5 @@
+/* Modded version of https://github.com/dvopalecky/greedy-number-partitioning */
+
 const greedyPartitioning = (array, numberOfTeams) => {
   const sorted = array.sort((a, b) => b.mmr - a.mmr);
 
