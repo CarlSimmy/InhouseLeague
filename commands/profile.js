@@ -66,6 +66,6 @@ module.exports = {
         { name: 'Winrate', value: winrate?.toString(), inline: true },
       );
 
-    interaction.reply({ embeds: [profileEmbed] });
+    interaction.reply({ embeds: [profileEmbed], ephemeral: true });
   },
 };
