@@ -123,6 +123,8 @@ module.exports = {
         });
       }
 
+      stats.games.totalPlayed += 1;
+
       fs.writeFile(__dirname + '/../lists/stats.json', JSON.stringify(stats), err => {
         err && console.log(`Error when writing to text file: ${err}`);
       });
