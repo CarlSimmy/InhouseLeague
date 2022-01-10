@@ -83,7 +83,7 @@ module.exports = {
       if (btnInteraction.customId === 'blue-wins') {
         blueTeamEmbed.setAuthor({ name: 'WINNERS!' });
         redTeamEmbed.setAuthor({ name: 'LOSERS!' });
-        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, true, 80);
+        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, true, 85);
         const eloChange = result.playerRating - blueTeam.totalMmr;
 
         blueTeam.team.forEach(player => {
@@ -104,7 +104,7 @@ module.exports = {
       else {
         redTeamEmbed.setAuthor({ name: 'WINNERS!' });
         blueTeamEmbed.setAuthor({ name: 'LOSERS!' });
-        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, false, 80);
+        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, false, 85);
         const eloChange = result.opponentRating - redTeam.totalMmr;
 
         redTeam.team.forEach(player => {
