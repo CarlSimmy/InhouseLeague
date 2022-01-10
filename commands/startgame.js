@@ -24,8 +24,8 @@ module.exports = {
     const blueTeam = { team: createdTeams[0], totalMmr: createdTeams[0].reduce((sum, { mmr }) => sum + mmr, 0) };
     const redTeam = { team: createdTeams[1], totalMmr: createdTeams[1].reduce((sum, { mmr }) => sum + mmr, 0) };
 
-    const blueTeamLeader = redTeam.team[Math.floor(Math.random() * redTeam.team.length)];
-    const redTeamLeader = blueTeam.team[Math.floor(Math.random() * blueTeam.team.length)];
+    const blueTeamLeader = blueTeam.team[Math.floor(Math.random() * blueTeam.team.length)];
+    const redTeamLeader = redTeam.team[Math.floor(Math.random() * redTeam.team.length)];
 
     const blueTeamEmbed = new MessageEmbed()
       .setColor('#4752c4')
@@ -83,17 +83,17 @@ module.exports = {
       if (btnInteraction.customId === 'blue-wins') {
         blueTeamEmbed.setAuthor({ name: 'WINNERS!' });
         redTeamEmbed.setAuthor({ name: 'LOSERS!' });
-        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, true, 40);
+        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, true, 60);
         const eloChange = result.playerRating - blueTeam.totalMmr;
 
         blueTeam.team.forEach(player => {
-          stats[player.id].mmr += eloChange;
-          stats[player.id].wins += 1;
+          stats.players[player.id].mmr += eloChange;
+          stats.players[player.id].wins += 1;
         });
 
         redTeam.team.forEach(player => {
-          stats[player.id].mmr -= eloChange;
-          stats[player.id].losses += 1;
+          stats.players[player.id].mmr -= eloChange;
+          stats.players[player.id].losses += 1;
         });
 
         btnInteraction.reply({
@@ -104,17 +104,17 @@ module.exports = {
       else {
         redTeamEmbed.setAuthor({ name: 'WINNERS!' });
         blueTeamEmbed.setAuthor({ name: 'LOSERS!' });
-        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, false, 40);
+        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, false, 60);
         const eloChange = result.opponentRating - redTeam.totalMmr;
 
         redTeam.team.forEach(player => {
-          stats[player.id].mmr += eloChange;
-          stats[player.id].wins += 1;
+          stats.players[player.id].mmr += eloChange;
+          stats.players[player.id].wins += 1;
         });
 
         blueTeam.team.forEach(player => {
-          stats[player.id].mmr -= eloChange;
-          stats[player.id].losses += 1;
+          stats.players[player.id].mmr -= eloChange;
+          stats.players[player.id].losses += 1;
         });
 
         btnInteraction.reply({

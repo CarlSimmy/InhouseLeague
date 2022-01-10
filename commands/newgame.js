@@ -46,8 +46,8 @@ module.exports = {
 
     collector.on('collect', btnInteraction => {
       // Add new player to stats file
-      if (!stats[btnInteraction.user.id]) {
-        stats[btnInteraction.user.id] = { wins: 0, losses: 0, mmr: 1000 };
+      if (!stats.players[btnInteraction.user.id]) {
+        stats.players[btnInteraction.user.id] = { name: btnInteraction.user.username, wins: 0, losses: 0, mmr: 1200 };
 
         fs.writeFile(__dirname + '/../lists/stats.json', JSON.stringify(stats), err => {
           err && console.log(`Error when writing to text file: ${err}`);
@@ -55,7 +55,7 @@ module.exports = {
       }
 
       // Add player to the current round
-      currentPlayers.push({ id: btnInteraction.user.id, name: btnInteraction.user.username, mmr: stats[btnInteraction.user.id].mmr || 1000 });
+      currentPlayers.push({ id: btnInteraction.user.id, name: btnInteraction.user.username, mmr: stats.players[btnInteraction.user.id].mmr || 1200 });
 
       btnInteraction.reply({
         content: `You joined the game ${btnInteraction.user}!`,
