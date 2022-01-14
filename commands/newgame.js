@@ -55,7 +55,13 @@ module.exports = {
       }
 
       // Add player to the current round
-      currentPlayers.push({ id: btnInteraction.user.id, name: btnInteraction.user.username, mmr: stats.players[btnInteraction.user.id].mmr || 1200 });
+      currentPlayers.push({
+        id: btnInteraction.user.id,
+        name: btnInteraction.user.username,
+        wins: stats.players[btnInteraction.user.id].wins || 0,
+        losses: stats.players[btnInteraction.user.id].losses || 0,
+        mmr: stats.players[btnInteraction.user.id].mmr || 1200,
+      });
 
       btnInteraction.reply({
         content: `You joined the game ${btnInteraction.user}!`,

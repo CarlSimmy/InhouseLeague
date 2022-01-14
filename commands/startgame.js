@@ -79,47 +79,66 @@ module.exports = {
       time: 120 * 60000,
     });
 
+    const getEloChange = (blueMmr, redMmr, gamesPlayed, isBlueWinner = true) => {
+      const PLACEMENT_FACTOR = 90;
+      const ADJUSTMENT_FACTOR = 60;
+      const STANDARD_FACTOR = 30;
+
+      let result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, STANDARD_FACTOR);
+
+      if (gamesPlayed < 10) {
+        result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, PLACEMENT_FACTOR);
+        return (
+          (isBlueWinner ? result.playerRating : result.opponentRating) - (isBlueWinner ? blueMmr : redMmr)
+        );
+      }
+      else if (gamesPlayed >= 10 && gamesPlayed < 20) {
+        result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, ADJUSTMENT_FACTOR);
+        return (
+          (isBlueWinner ? result.playerRating : result.opponentRating) - (isBlueWinner ? blueMmr : redMmr)
+        );
+      }
+
+      return (
+        (isBlueWinner ? result.playerRating : result.opponentRating) - (isBlueWinner ? blueMmr : redMmr)
+      );
+    };
+
     collector.on('collect', btnInteraction => {
       if (btnInteraction.customId === 'blue-wins') {
         blueTeamEmbed.setAuthor({ name: 'WINNERS!' });
         redTeamEmbed.setAuthor({ name: 'LOSERS!' });
-        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, true, 85);
-        const eloChange = result.playerRating - blueTeam.totalMmr;
 
         blueTeam.team.forEach(player => {
-          stats.players[player.id].mmr += eloChange;
+          stats.players[player.id].mmr += getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses);
           stats.players[player.id].wins += 1;
         });
 
         redTeam.team.forEach(player => {
-          stats.players[player.id].mmr -= eloChange;
+          stats.players[player.id].mmr -= getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses);
           stats.players[player.id].losses += 1;
         });
 
         btnInteraction.reply({
-          content: `${blueTeamEmbed.title} defeats ${redTeamEmbed.title}, GG WP!
-*Rating change -> ${eloChange}*`,
+          content: `${blueTeamEmbed.title} defeats ${redTeamEmbed.title}, GG WP!`,
         });
       }
       else {
         redTeamEmbed.setAuthor({ name: 'WINNERS!' });
         blueTeamEmbed.setAuthor({ name: 'LOSERS!' });
-        const result = EloRating.calculate(blueTeam.totalMmr, redTeam.totalMmr, false, 85);
-        const eloChange = result.opponentRating - redTeam.totalMmr;
 
         redTeam.team.forEach(player => {
-          stats.players[player.id].mmr += eloChange;
+          stats.players[player.id].mmr += getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses, false);
           stats.players[player.id].wins += 1;
         });
 
         blueTeam.team.forEach(player => {
-          stats.players[player.id].mmr -= eloChange;
+          stats.players[player.id].mmr -= getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses, false);
           stats.players[player.id].losses += 1;
         });
 
         btnInteraction.reply({
-          content: `${redTeamEmbed.title} defeats ${blueTeamEmbed.title}, GG WP!
-*Rating change -> ${eloChange}*`,
+          content: `${redTeamEmbed.title} defeats ${blueTeamEmbed.title}, GG WP!`,
         });
       }
 
