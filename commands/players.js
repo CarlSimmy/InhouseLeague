@@ -1,20 +1,29 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const sequelizeDb = require('../database/connection');
 
-const currentPlayers = require('../lists/currentPlayers');
+const activeGame = require('../lists/activeGame');
+const Player = require('../database/models/player');
+const Showdown = require('../database/models/showdown');
+const HowlingAbyss = require('../database/models/howlingAbyss');
+const SummonersRift = require('../database/models/summonersRift');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('players')
     .setDescription('Outputs a list of players who have joined the current game.'),
   async execute(interaction) {
-    const playerListEmbed = new MessageEmbed()
+    const playerInfo = Promise.all(activeGame.players.map(async id => {
+      const player = await Player.findByPk(id);
+      const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: id } });
+
+      return (`${player.name} (${gameModePlayer.rating})`);
+    })).then(info => info.join().replaceAll(',', '\n'));
+
+    const playerListEmbed = new EmbedBuilder()
       .setColor('#0099ff')
-      .setTitle('Active players in the current game:')
-      .setDescription(
-        currentPlayers.map(player => `**${player.name}** *(${player.mmr})*`).join().replaceAll(',', '\n')
-        || 'No players have joined yet.',
-      );
+      .setTitle(`Active players in the ${activeGame.gameMode.name} game:`)
+      .setDescription(await playerInfo || 'No players have joined yet.');
 
     interaction.reply({ embeds: [playerListEmbed] });
   },
