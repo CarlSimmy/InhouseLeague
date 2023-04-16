@@ -4,7 +4,7 @@ const sequelizeDb = require('../connection');
 const Player = require('./player');
 
 /* Summoners Rift refers to games played on that specific map. Standard game mode usually played 4v4 or 5v5 */
-const SummonersRift = sequelizeDb.define('summoners_rift', {
+const SummonersRift = sequelizeDb.define('summonersRift', {
   wins: {
     type: Sequelize.INTEGER,
     allowNull: false,
