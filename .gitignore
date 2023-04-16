@@ -1,5 +1,6 @@
 node_modules
 .env
+.vscode
 config.json
 database.sqlite
 lists/stats.json
