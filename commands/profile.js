@@ -1,69 +1,123 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const sequelizeDb = require('../database/connection');
 
-const stats = require('../lists/stats.json');
+const Player = require('../database/models/player');
+const Showdown = require('../database/models/showdown');
+const HowlingAbyss = require('../database/models/howlingAbyss');
+const SummonersRift = require('../database/models/summonersRift');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('profile')
     .setDescription('Check your inhouse LoL profile.')
+    .addStringOption(option =>
+      option.setName('gamemode')
+        .setDescription('Outputs the profile for the specified game mode.')
+        .addChoices(
+          { name: 'Showdown', value: 'showdown' },
+          { name: 'Howling Abyss', value: 'howlingAbyss' },
+          { name: 'Summoner\'s Rift', value: 'summonersRift' },
+        )
+        .setRequired(false),
+    )
     .addUserOption(option =>
       option.setName('user')
         .setDescription('Outputs the profile for the selected user.')
-        .setRequired(false)),
+        .setRequired(false),
+    ),
   async execute(interaction) {
-    const optionsUser = interaction.options.getUser('user');
     const defaultUser = interaction.user;
+    const optionsUser = interaction.options.getUser('user');
+    const chosenGameMode = interaction.options.getString('gamemode');
+    const playerOverall = await getPlayerOverall();
+    const playerForGameMode = await getPlayerForGameMode();
 
-    if (optionsUser && !stats.players[optionsUser?.id]?.mmr) {
-      interaction.reply({ content: `${optionsUser} have not played any games yet.` });
+    /* Get the overall stats for a player depending on the user option passed */
+    function getPlayerOverall() {
+      if (optionsUser) {
+        return Player.findByPk(optionsUser.id);
+      }
+
+      return Player.findByPk(defaultUser.id);
+    }
+
+    /* Get the specific game mode stats for a player depending on the user option passed */
+    function getPlayerForGameMode() {
+      if (!chosenGameMode) {
+        return;
+      }
+
+      if (optionsUser) {
+        return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: optionsUser.id } });
+      }
+
+      return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: defaultUser.id } });
+    }
+
+    if (chosenGameMode && !playerForGameMode) {
+      interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played in that game mode yet.`, ephemeral: true });
       return;
     }
 
-    const mmr = optionsUser ? stats.players[optionsUser?.id]?.mmr : stats.players[defaultUser?.id]?.mmr;
-    const wins = optionsUser ? stats.players[optionsUser?.id]?.wins : stats.players[defaultUser?.id]?.wins;
-    const losses = optionsUser ? stats.players[optionsUser?.id]?.losses : stats.players[defaultUser?.id]?.losses;
-    const winrate = Math.round((wins / (wins + losses)) * 100) + '%';
-
-    const sortedStats = [];
-    for (const player in stats.players) {
-      sortedStats.push({ id: player, mmr: stats.players[player].mmr });
+    if (!playerOverall) {
+      interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`, ephemeral: true });
+      return;
     }
 
-    sortedStats.sort((a, b) => b.mmr - a.mmr);
+    /* Get player standings */
+    async function getPlayerStanding() {
+      if (!chosenGameMode) {
+        return;
+      }
 
-    const currentRank = `${sortedStats.findIndex(player => optionsUser ? player.id === optionsUser?.id : player.id === defaultUser?.id) + 1} / ${sortedStats.length}`;
+      const totalPlayersForGameMode = await sequelizeDb.models[chosenGameMode].findAll({ order: [['rating', 'DESC']] });
+      const placement = totalPlayersForGameMode.findIndex((stat) => stat.playerId === (optionsUser ? optionsUser.id : defaultUser.id)) + 1;
+      return `${placement} / ${totalPlayersForGameMode.length}`;
+    }
 
+    /* Get images based on ranks from bronze -> diamond */
     function getRankImage() {
-      if (mmr >= 0 && mmr <= 949) {
-        return 'https://i.imgur.com/YEmMdS4.png';
-      }
-      else if (mmr >= 950 && mmr <= 1299) {
-        return 'https://i.imgur.com/lQV0thv.png';
-      }
-      else if (mmr >= 1300 && mmr <= 1649) {
-        return 'https://i.imgur.com/NIUCmvx.png';
-      }
-      else if (mmr >= 1650 && mmr <= 1999) {
-        return 'https://i.imgur.com/Pi6HXZH.png';
-      }
-      else if (mmr >= 2000) {
-        return 'https://i.imgur.com/ExCc5g0.png';
+      let rankImage = 'https://i.imgur.com/YEmMdS4.png';
+
+      switch (rating) {
+      case (rating >= 0 && rating <= 949):
+        rankImage = 'https://i.imgur.com/YEmMdS4.png';
+        break;
+      case (rating >= 950 && rating <= 1299):
+        rankImage = 'https://i.imgur.com/lQV0thv.png';
+        break;
+      case (rating >= 1300 && rating <= 1649):
+        rankImage = 'https://i.imgur.com/NIUCmvx.png';
+        break;
+      case (rating >= 1650 && rating <= 1999):
+        rankImage = 'https://i.imgur.com/Pi6HXZH.png';
+        break;
+      case (rating >= 2000):
+        rankImage = 'https://i.imgur.com/ExCc5g0.png';
+        break;
       }
 
-      return 'https://i.imgur.com/YEmMdS4.png';
+      return rankImage;
     }
 
-    const profileEmbed = new MessageEmbed()
+    /* Setting player stat variables based on if a gamemode is chosen or not */
+    const rating = chosenGameMode ? playerForGameMode.rating : null;
+    const wins = chosenGameMode ? playerForGameMode.wins : playerOverall.totalWins;
+    const losses = chosenGameMode ? playerForGameMode.losses : playerOverall.totalLosses;
+    const winrate = Math.round((wins / (wins + losses)) * 100) || null;
+    const playerStanding = await getPlayerStanding();
+
+    const profileEmbed = new EmbedBuilder()
       .setColor('#0099ff')
       .setTitle(`${optionsUser?.username || interaction.member.user.username}'s stats`)
       .setImage(getRankImage())
       .addFields(
-        { name: 'MMR', value: mmr?.toString() || '1200' },
-        { name: 'Current ranking', value: currentRank || 'No games recorded yet.' },
-        { name: 'Wins', value: wins?.toString() || 'No wins recorded yet.', inline: true },
-        { name: 'Losses', value: losses?.toString() || 'No losses recorded yet.', inline: true },
-        { name: 'Winrate', value: winrate?.toString(), inline: true },
+        { name: 'Rating', value: rating?.toString() || 'No overall rating exists.' },
+        { name: 'Current placement', value: playerStanding || 'No overall placement exists.' },
+        { name: 'Wins', value: wins?.toString(), inline: true },
+        { name: 'Losses', value: losses?.toString(), inline: true },
+        { name: 'Winrate', value: winrate ? `${winrate?.toString()} %` : 'N/A', inline: true },
       );
 
     interaction.reply({ embeds: [profileEmbed], ephemeral: true });
