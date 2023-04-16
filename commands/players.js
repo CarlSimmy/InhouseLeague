@@ -4,9 +4,6 @@ const sequelizeDb = require('../database/connection');
 
 const activeGame = require('../lists/activeGame');
 const Player = require('../database/models/player');
-const Showdown = require('../database/models/showdown');
-const HowlingAbyss = require('../database/models/howlingAbyss');
-const SummonersRift = require('../database/models/summonersRift');
 
 module.exports = {
   data: new SlashCommandBuilder()

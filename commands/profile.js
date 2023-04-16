@@ -3,9 +3,6 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const sequelizeDb = require('../database/connection');
 
 const Player = require('../database/models/player');
-const Showdown = require('../database/models/showdown');
-const HowlingAbyss = require('../database/models/howlingAbyss');
-const SummonersRift = require('../database/models/summonersRift');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -49,20 +46,18 @@ module.exports = {
       }
 
       if (optionsUser) {
-        return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: optionsUser.id } });
+        return sequelizeDb.models[chosenGameMode]?.findOne({ where: { playerId: optionsUser.id } });
       }
 
-      return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: defaultUser.id } });
+      return sequelizeDb.models[chosenGameMode]?.findOne({ where: { playerId: defaultUser.id } });
     }
 
     if (chosenGameMode && !playerForGameMode) {
-      interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played in that game mode yet.`, ephemeral: true });
-      return;
+      return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played in that game mode yet.`, ephemeral: true });
     }
 
     if (!playerOverall) {
-      interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`, ephemeral: true });
-      return;
+      return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`, ephemeral: true });
     }
 
     /* Get player standings */
@@ -71,7 +66,7 @@ module.exports = {
         return;
       }
 
-      const totalPlayersForGameMode = await sequelizeDb.models[chosenGameMode].findAll({ order: [['rating', 'DESC']] });
+      const totalPlayersForGameMode = await sequelizeDb.models[chosenGameMode]?.findAll({ order: [['rating', 'DESC']] });
       const placement = totalPlayersForGameMode.findIndex((stat) => stat.playerId === (optionsUser ? optionsUser.id : defaultUser.id)) + 1;
       return `${placement} / ${totalPlayersForGameMode.length}`;
     }

@@ -2,9 +2,6 @@ const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const sequelizeDb = require('../database/connection');
 
-const Showdown = require('../database/models/showdown');
-const HowlingAbyss = require('../database/models/howlingAbyss');
-const SummonersRift = require('../database/models/summonersRift');
 const Player = require('../database/models/player');
 
 module.exports = {
@@ -23,7 +20,7 @@ module.exports = {
     ),
   async execute(interaction) {
     const chosenGameMode = interaction.options.getString('gamemode');
-    const leaderboard = await sequelizeDb.models[chosenGameMode].findAll({ order: [['rating', 'DESC']] });
+    const leaderboard = await sequelizeDb.models[chosenGameMode]?.findAll({ order: [['rating', 'DESC']] });
     let formattedGameMode;
 
     /* Mapping the choice values to their correct names since it seems I can't get them from the choices object */
@@ -39,9 +36,8 @@ module.exports = {
       break;
     }
 
-    if (!leaderboard.length) {
-      interaction.reply({ content: `No leaderboard exists for ${formattedGameMode} yet.` });
-      return;
+    if (!leaderboard) {
+      return interaction.reply({ content: `No leaderboard exists for ${formattedGameMode} yet.` });
     }
 
     /*
