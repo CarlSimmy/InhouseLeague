@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const stats = require('../lists/stats.json');
@@ -15,7 +15,7 @@ module.exports = {
 
     sortedStats.sort((a, b) => b.mmr - a.mmr);
 
-    const leaderboardEmbed = new MessageEmbed()
+    const leaderboardEmbed = new EmbedBuilder()
       .setColor('#d4af37')
       .setTitle('Leaderboard')
       .setDescription(

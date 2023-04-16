@@ -1,11 +1,11 @@
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const EloRating = require('elo-rating');
 const fs = require('fs');
 
 const { userId } = require('../config.json');
 const greedyPartitioning = require('../functions/greedyPartitioning');
-const currentPlayers = require('../lists/currentPlayers');
+const activeGame = require('../lists/activeGame');
 const nameTable = require('../lists/nameTable');
 const stats = require('../lists/stats.json');
 
@@ -14,20 +14,20 @@ module.exports = {
     .setName('startgame')
     .setDescription('Initiate and create teams for the current inhouse game.'),
   async execute(interaction) {
-    if (currentPlayers.length !== 10) {
+    if (activeGame.players.length !== 10) {
       interaction.reply({ content: '10 players need to join before you can start the game.' });
       return;
     }
 
     const numberOfTeams = 2;
-    const createdTeams = greedyPartitioning(currentPlayers, numberOfTeams);
+    const createdTeams = greedyPartitioning(activeGame.players, numberOfTeams);
     const blueTeam = { team: createdTeams[0], totalMmr: createdTeams[0].reduce((sum, { mmr }) => sum + mmr, 0) };
     const redTeam = { team: createdTeams[1], totalMmr: createdTeams[1].reduce((sum, { mmr }) => sum + mmr, 0) };
 
     const blueTeamLeader = blueTeam.team[Math.floor(Math.random() * blueTeam.team.length)];
     const redTeamLeader = redTeam.team[Math.floor(Math.random() * redTeam.team.length)];
 
-    const blueTeamEmbed = new MessageEmbed()
+    const blueTeamEmbed = new EmbedBuilder()
       .setColor('#4752c4')
       .setTitle(`__${blueTeamLeader.name}'s ${nameTable[Math.floor(Math.random() * nameTable.length)]}__`)
       .setDescription(
@@ -36,7 +36,7 @@ module.exports = {
       )
       .setFooter({ text: `Calculated MMR: ${blueTeam.totalMmr}` });
 
-    const redTeamEmbed = new MessageEmbed()
+    const redTeamEmbed = new EmbedBuilder()
       .setColor('#d53b3e')
       .setTitle(`__${redTeamLeader.name}'s ${nameTable[Math.floor(Math.random() * nameTable.length)]}__`)
       .setDescription(
@@ -45,15 +45,15 @@ module.exports = {
       )
       .setFooter({ text: `Calculated MMR: ${redTeam.totalMmr}` });
 
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
         .setCustomId('blue-wins')
         .setLabel('Blue Team Wins')
-        .setStyle('PRIMARY'),
-      new MessageButton()
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
         .setCustomId('red-wins')
         .setLabel('Red Team Wins')
-        .setStyle('DANGER'),
+        .setStyle(ButtonStyle.Danger),
     );
 
     const message = await interaction.reply({
@@ -150,7 +150,7 @@ module.exports = {
     });
 
     collector.on('end', () => {
-      currentPlayers.length = 0;
+      activeGame.players.length = 0;
       row.components.forEach(button => button.setDisabled(true));
 
       // Edit message button with new desiabled state
