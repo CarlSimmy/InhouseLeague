@@ -5,6 +5,13 @@ const sequelizeDb = require('../database/connection');
 const Player = require('../database/models/player');
 const getGameModeInfo = require('../shared/getGameModeInfo');
 
+// I am using the models dynamically
+/* eslint-disable no-unused-vars */
+const Showdown = require('../database/models/showdown');
+const HowlingAbyss = require('../database/models/howlingAbyss');
+const SummonersRift = require('../database/models/summonersRift');
+/* eslint-disable no-unused-vars */
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('profile')
@@ -48,10 +55,10 @@ module.exports = {
       }
 
       if (optionsUser) {
-        return sequelizeDb.models[chosenGameMode]?.findOne({ where: { playerId: optionsUser.id } });
+        return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: optionsUser.id } });
       }
 
-      return sequelizeDb.models[chosenGameMode]?.findOne({ where: { playerId: defaultUser.id } });
+      return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: defaultUser.id } });
     }
 
     if (chosenGameMode && !playerForGameMode) {
@@ -68,38 +75,38 @@ module.exports = {
         return;
       }
 
-      const totalPlayersForGameMode = await sequelizeDb.models[chosenGameMode]?.findAll({ order: [['rating', 'DESC']] });
+      const totalPlayersForGameMode = await sequelizeDb.models[chosenGameMode].findAll({ order: [['rating', 'DESC']] });
       const placement = totalPlayersForGameMode.findIndex((stat) => stat.playerId === (optionsUser ? optionsUser.id : defaultUser.id)) + 1;
       return `${placement} / ${totalPlayersForGameMode.length}`;
     }
 
     /* Get images based on ranks from bronze -> diamond */
-    function getRankImage() {
-      let rankImage = 'https://i.imgur.com/YEmMdS4.png';
+    function getRankImage(rating) {
+      const bronzeImage = 'https://i.imgur.com/YEmMdS4.png';
+      const silverImage = 'https://i.imgur.com/lQV0thv.png';
+      const goldImage = 'https://i.imgur.com/NIUCmvx.png';
+      const platinumImage = 'https://i.imgur.com/Pi6HXZH.png';
+      const diamondImage = 'https://i.imgur.com/ExCc5g0.png';
 
-      switch (rating) {
-      case (rating >= 0 && rating <= 949):
-        rankImage = 'https://i.imgur.com/YEmMdS4.png';
-        break;
-      case (rating >= 950 && rating <= 1299):
-        rankImage = 'https://i.imgur.com/lQV0thv.png';
-        break;
-      case (rating >= 1300 && rating <= 1649):
-        rankImage = 'https://i.imgur.com/NIUCmvx.png';
-        break;
-      case (rating >= 1650 && rating <= 1999):
-        rankImage = 'https://i.imgur.com/Pi6HXZH.png';
-        break;
-      case (rating >= 2000):
-        rankImage = 'https://i.imgur.com/ExCc5g0.png';
-        break;
+      if (rating >= 0 && rating <= 949) {
+        return bronzeImage;
       }
-
-      return rankImage;
+      else if (rating >= 950 && rating <= 1299) {
+        return silverImage;
+      }
+      else if (rating >= 1300 && rating <= 1649) {
+        return goldImage;
+      }
+      else if (rating >= 1650 && rating <= 1999) {
+        return platinumImage;
+      }
+      else {
+        return diamondImage;
+      }
     }
 
     /* Setting player stat variables based on if a gamemode is chosen or not */
-    const rating = chosenGameMode ? playerForGameMode.rating : null;
+    const rating = chosenGameMode ? Number(playerForGameMode.rating) : null;
     const wins = chosenGameMode ? playerForGameMode.wins : playerOverall.totalWins;
     const losses = chosenGameMode ? playerForGameMode.losses : playerOverall.totalLosses;
     const winrate = Math.round((wins / (wins + losses)) * 100) || null;
@@ -108,7 +115,7 @@ module.exports = {
     const profileEmbed = new EmbedBuilder()
       .setColor('#0099ff')
       .setTitle(`${optionsUser?.username || interaction.member.user.username}'s stats`)
-      .setImage(getRankImage())
+      .setImage(getRankImage(rating))
       .addFields(
         { name: 'Rating', value: rating?.toString() || 'No overall rating exists.' },
         { name: 'Current placement', value: playerStanding || 'No overall placement exists.' },

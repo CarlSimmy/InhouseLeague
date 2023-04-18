@@ -14,7 +14,7 @@ module.exports = {
     const interactingUserId = interaction.user.id;
 
     if (interactingUserId !== adminUserId) {
-      return interaction.reply({ content: 'Only admins are allowed to use the reload command.', ephemeral: true });
+      return interaction.reply({ content: 'Only admins are allowed to use the "/reload" command.', ephemeral: true });
     }
 
     const commandName = interaction.options.getString('command', true).toLowerCase();

@@ -5,6 +5,13 @@ const sequelizeDb = require('../database/connection');
 const Player = require('../database/models/player');
 const getGameModeInfo = require('../shared/getGameModeInfo');
 
+// I am using the models dynamically
+/* eslint-disable no-unused-vars */
+const Showdown = require('../database/models/showdown');
+const HowlingAbyss = require('../database/models/howlingAbyss');
+const SummonersRift = require('../database/models/summonersRift');
+/* eslint-disable no-unused-vars */
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('leaderboard')
@@ -21,10 +28,10 @@ module.exports = {
     ),
   async execute(interaction) {
     const chosenGameMode = interaction.options.getString('gamemode');
-    const leaderboard = await sequelizeDb.models[chosenGameMode]?.findAll({ order: [['rating', 'DESC']] });
+    const leaderboard = await sequelizeDb.models[chosenGameMode].findAll({ order: [['rating', 'DESC']] });
     const gameModeInfo = getGameModeInfo(chosenGameMode);
 
-    if (!leaderboard) {
+    if (!leaderboard.length) {
       return interaction.reply({ content: `No leaderboard exists for ${gameModeInfo.name} yet.` });
     }
 
