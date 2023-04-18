@@ -3,6 +3,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const sequelizeDb = require('../database/connection');
 
 const Player = require('../database/models/player');
+const getGameModeInfo = require('../shared/getGameModeInfo');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,6 +28,7 @@ module.exports = {
     const defaultUser = interaction.user;
     const optionsUser = interaction.options.getUser('user');
     const chosenGameMode = interaction.options.getString('gamemode');
+    const gameModeInfo = getGameModeInfo(chosenGameMode);
     const playerOverall = await getPlayerOverall();
     const playerForGameMode = await getPlayerForGameMode();
 
@@ -53,11 +55,11 @@ module.exports = {
     }
 
     if (chosenGameMode && !playerForGameMode) {
-      return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played in that game mode yet.`, ephemeral: true });
+      return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`, ephemeral: true });
     }
 
     if (!playerOverall) {
-      return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`, ephemeral: true });
+      return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`, ephemeral: true });
     }
 
     /* Get player standings */

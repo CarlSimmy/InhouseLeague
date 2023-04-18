@@ -3,6 +3,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const sequelizeDb = require('../database/connection');
 
 const Player = require('../database/models/player');
+const getGameModeInfo = require('../shared/getGameModeInfo');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,23 +22,10 @@ module.exports = {
   async execute(interaction) {
     const chosenGameMode = interaction.options.getString('gamemode');
     const leaderboard = await sequelizeDb.models[chosenGameMode]?.findAll({ order: [['rating', 'DESC']] });
-    let formattedGameMode;
-
-    /* Mapping the choice values to their correct names since it seems I can't get them from the choices object */
-    switch (chosenGameMode) {
-    case 'showdown':
-      formattedGameMode = 'Showdown';
-      break;
-    case 'howlingAbyss':
-      formattedGameMode = 'Howling Abyss';
-      break;
-    case 'summonersRift':
-      formattedGameMode = 'Summoner\'s Rift';
-      break;
-    }
+    const gameModeInfo = getGameModeInfo(chosenGameMode);
 
     if (!leaderboard) {
-      return interaction.reply({ content: `No leaderboard exists for ${formattedGameMode} yet.` });
+      return interaction.reply({ content: `No leaderboard exists for ${gameModeInfo.name} yet.` });
     }
 
     /*
@@ -57,7 +45,7 @@ module.exports = {
 
     const leaderboardEmbed = new EmbedBuilder()
       .setColor('#d4af37')
-      .setTitle(`${formattedGameMode} Leaderboard`)
+      .setTitle(`${gameModeInfo.name} Leaderboard`)
       .setDescription(await formattedLeaderboard);
 
     interaction.reply({ embeds: [leaderboardEmbed] });

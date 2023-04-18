@@ -3,8 +3,8 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const EloRating = require('elo-rating');
 const fs = require('fs');
 
-const { userId } = require('../config.json');
-const greedyPartitioning = require('../functions/greedyPartitioning');
+const { adminUserId } = require('../config.json');
+const greedyPartitioning = require('../shared/greedyPartitioning');
 const activeGame = require('../lists/activeGame');
 const nameTable = require('../lists/nameTable');
 const stats = require('../lists/stats.json');
@@ -64,7 +64,7 @@ module.exports = {
 
     // Only team leaders and me can click the buttons to report result.
     const filter = async (userInteraction) => {
-      if (userInteraction.user.id === blueTeamLeader.id || userInteraction.user.id === redTeamLeader.id || userInteraction.user.id === userId) {
+      if (userInteraction.user.id === blueTeamLeader.id || userInteraction.user.id === redTeamLeader.id || userInteraction.user.id === adminUserId) {
         return true;
       }
 
@@ -153,7 +153,7 @@ module.exports = {
       activeGame.players.length = 0;
       row.components.forEach(button => button.setDisabled(true));
 
-      // Edit message button with new desiabled state
+      // Edit message button with new disabled state
       message.edit({ embeds: [blueTeamEmbed, redTeamEmbed], components: [row] });
     });
   },
