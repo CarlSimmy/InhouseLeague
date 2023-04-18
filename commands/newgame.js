@@ -1,37 +1,66 @@
-const { MessageActionRow, MessageButton } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const fs = require('fs');
 
-const stats = require('../lists/stats.json');
-const currentPlayers = require('../lists/currentPlayers');
+const activeGame = require('../lists/activeGame');
+const Player = require('../database/models/player');
+const getGameModeInfo = require('../shared/getGameModeInfo');
+const sequelizeDb = require('../database/connection');
+
+// I am using the models dynamically
+/* eslint-disable no-unused-vars */
+const Showdown = require('../database/models/showdown');
+const HowlingAbyss = require('../database/models/howlingAbyss');
+const SummonersRift = require('../database/models/summonersRift');
+/* eslint-disable no-unused-vars */
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('newgame')
-    .setDescription('Starts a new LoL inhouse game for 5v5.'),
+    .setDescription('Starts a new LoL inhouse game.')
+    .addStringOption(option =>
+      option.setName('gamemode')
+        .setDescription('The game mode that should be played.')
+        .addChoices(
+          { name: 'Showdown', value: 'showdown' },
+          { name: 'Howling Abyss', value: 'howlingAbyss' },
+          { name: 'Summoner\'s Rift', value: 'summonersRift' },
+        )
+        .setRequired(true),
+    ),
   async execute(interaction) {
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
+    if (activeGame.players.length) {
+      return interaction.reply({ content: 'A game is already active, use the "/resetgame" command first if you want to start another game.' });
+    }
+
+    const chosenGameMode = interaction.options.getString('gamemode');
+    const gameModeInfo = getGameModeInfo(chosenGameMode);
+
+    activeGame.gameMode = gameModeInfo;
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
         .setCustomId('join')
         .setLabel('Join')
-        .setStyle('PRIMARY'),
+        .setStyle(ButtonStyle.Primary),
     );
 
     const message = await interaction.reply({
-      content: 'Press the button below to join the next 5v5 game. (0/10)',
+      content: `Press the button below to join the next ${gameModeInfo.name} game. (0/${gameModeInfo.maxPlayers})`,
       components: [row],
       fetchReply: true,
     });
 
     const filter = async (userInteraction) => {
-      if (currentPlayers.filter(player => player.id === userInteraction.user.id).length > 0) {
+      const user = userInteraction.user;
+
+      if (activeGame.players.find(id => id === user.id)) {
         await userInteraction.deferReply();
-        await userInteraction.editReply({ content: `${userInteraction.user}, it looks like you've already joined.`, ephemeral: true });
+        await userInteraction.editReply({ content: `${user}, it looks like you've already joined.`, ephemeral: true });
         return false;
       }
-      else if (currentPlayers.length >= 10) {
+      else if (activeGame.length >= gameModeInfo.maxPlayers) {
         await userInteraction.deferReply();
-        await userInteraction.editReply({ content: `Sorry ${userInteraction.user}, but the current game is full.`, ephemeral: true });
+        await userInteraction.editReply({ content: `Sorry ${user}, but the current game is full.`, ephemeral: true });
         return false;
       }
 
@@ -40,42 +69,51 @@ module.exports = {
 
     const collector = message.createMessageComponentCollector({
       filter,
-      max: 10,
+      max: gameModeInfo.maxPlayers,
       time: 15 * 60000,
     });
 
-    collector.on('collect', btnInteraction => {
-      // Add new player to stats file
-      if (!stats.players[btnInteraction.user.id]) {
-        stats.players[btnInteraction.user.id] = { name: btnInteraction.user.username, wins: 0, losses: 0, mmr: 1200 };
+    collector.on('collect', async btnInteraction => {
+      const playerId = btnInteraction.user.id;
+      const playerName = btnInteraction.user.username;
+      const isPlayerExisting = await Player.findByPk(playerId);
+      const isGameModePlayerExisting = await sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: playerId } });
 
-        fs.writeFile(__dirname + '/../lists/stats.json', JSON.stringify(stats), err => {
-          err && console.log(`Error when writing to text file: ${err}`);
+      if (!isPlayerExisting) {
+        await Player.create({
+          id: playerId,
+          name: playerName,
+          totalWins: 0,
+          totalLosses: 0,
+        });
+      }
+
+      if (!isGameModePlayerExisting) {
+        const model = sequelizeDb.models[chosenGameMode];
+        await model.create({
+          wins: 0,
+          losses: 0,
+          rating: 1200,
+          playerId: playerId,
         });
       }
 
       // Add player to the current round
-      currentPlayers.push({
-        id: btnInteraction.user.id,
-        name: btnInteraction.user.username,
-        wins: stats.players[btnInteraction.user.id].wins || 0,
-        losses: stats.players[btnInteraction.user.id].losses || 0,
-        mmr: stats.players[btnInteraction.user.id].mmr || 1200,
-      });
+      activeGame.players.push(playerId);
 
       btnInteraction.reply({
         content: `You joined the game ${btnInteraction.user}!`,
         ephemeral: true,
       });
 
-      message.edit(`Press the button below to join the next 5v5 game. (${currentPlayers.length}/10)`);
+      message.edit(`Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`);
     });
 
     collector.on('end', () => {
-      message.reply('Round is full, use the "startgame" command when everyone is ready! (10/10)');
+      message.reply(`Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length}/${gameModeInfo.maxPlayers})`);
       row.components[0].setDisabled(true);
 
-      // Edit message button with new desiabled state
+      // Edit message button with new disabled state
       message.edit({ components: [row] });
     });
   },
