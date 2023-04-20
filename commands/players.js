@@ -5,7 +5,7 @@ const sequelizeDb = require('../database/connection');
 const activeGame = require('../lists/activeGame');
 const Player = require('../database/models/player');
 
-// I am using the models dynamically
+// The models are used dynamically
 /* eslint-disable no-unused-vars */
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');
@@ -21,9 +21,9 @@ module.exports = {
       return interaction.reply({ content: 'No game is active yet, use the "/newgame" command to start a new game!' });
     }
 
-    const playerInfo = Promise.all(activeGame.players.map(async id => {
-      const player = await Player.findByPk(id);
-      const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: id } });
+    const playerInfo = Promise.all(activeGame.players.map(async activePlayer => {
+      const player = await Player.findByPk(activePlayer.id);
+      const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: activePlayer.id } });
 
       return (`${player.name} (${gameModePlayer.rating})`);
     })).then(info => info.join().replaceAll(',', '\n'));

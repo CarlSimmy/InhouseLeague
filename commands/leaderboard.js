@@ -5,7 +5,7 @@ const sequelizeDb = require('../database/connection');
 const Player = require('../database/models/player');
 const getGameModeInfo = require('../shared/getGameModeInfo');
 
-// I am using the models dynamically
+// The models are used dynamically
 /* eslint-disable no-unused-vars */
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');

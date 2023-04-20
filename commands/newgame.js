@@ -6,7 +6,7 @@ const Player = require('../database/models/player');
 const getGameModeInfo = require('../shared/getGameModeInfo');
 const sequelizeDb = require('../database/connection');
 
-// I am using the models dynamically
+// The models are used dynamically
 /* eslint-disable no-unused-vars */
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');
@@ -58,7 +58,7 @@ module.exports = {
         await userInteraction.editReply({ content: `${user}, it looks like you've already joined.`, ephemeral: true });
         return false;
       }
-      else if (activeGame.length >= gameModeInfo.maxPlayers) {
+      else if (activeGame.players.length >= gameModeInfo.maxPlayers) {
         await userInteraction.deferReply();
         await userInteraction.editReply({ content: `Sorry ${user}, but the current game is full.`, ephemeral: true });
         return false;
@@ -76,10 +76,10 @@ module.exports = {
     collector.on('collect', async btnInteraction => {
       const playerId = btnInteraction.user.id;
       const playerName = btnInteraction.user.username;
-      const isPlayerExisting = await Player.findByPk(playerId);
-      const isGameModePlayerExisting = await sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: playerId } });
+      const gameModePlayer = await sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: playerId } });
+      const dbPlayer = await Player.findByPk(playerId);
 
-      if (!isPlayerExisting) {
+      if (!dbPlayer) {
         await Player.create({
           id: playerId,
           name: playerName,
@@ -88,9 +88,8 @@ module.exports = {
         });
       }
 
-      if (!isGameModePlayerExisting) {
-        const model = sequelizeDb.models[chosenGameMode];
-        await model.create({
+      if (!gameModePlayer) {
+        await sequelizeDb.models[chosenGameMode].create({
           wins: 0,
           losses: 0,
           rating: 1200,
@@ -99,7 +98,7 @@ module.exports = {
       }
 
       // Add player to the current round
-      activeGame.players.push(playerId);
+      activeGame.players.push({ id: playerId, name: playerName, rating: gameModePlayer?.rating ?? 1200 });
 
       btnInteraction.reply({
         content: `You joined the game ${btnInteraction.user}!`,
@@ -109,8 +108,9 @@ module.exports = {
       message.edit(`Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`);
     });
 
+    // TODO: Fix so I don't have to type length + 1
     collector.on('end', () => {
-      message.reply(`Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length}/${gameModeInfo.maxPlayers})`);
+      message.reply(`Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length + 1}/${gameModeInfo.maxPlayers})`);
       row.components[0].setDisabled(true);
 
       // Edit message button with new disabled state
