@@ -1,28 +1,39 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const EloRating = require('elo-rating');
-const fs = require('fs');
+const sequelizeDb = require('../database/connection');
+const { Sequelize } = require('sequelize');
 
 const { adminUserId } = require('../config.json');
 const greedyPartitioning = require('../shared/greedyPartitioning');
 const activeGame = require('../lists/activeGame');
 const nameTable = require('../lists/nameTable');
-const stats = require('../lists/stats.json');
+const Player = require('../database/models/player');
+
+// The models are used dynamically
+/* eslint-disable no-unused-vars */
+const Showdown = require('../database/models/showdown');
+const HowlingAbyss = require('../database/models/howlingAbyss');
+const SummonersRift = require('../database/models/summonersRift');
+/* eslint-disable no-unused-vars */
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('startgame')
     .setDescription('Initiate and create teams for the current inhouse game.'),
   async execute(interaction) {
-    if (activeGame.players.length !== 10) {
-      interaction.reply({ content: '10 players need to join before you can start the game.' });
-      return;
+    if (activeGame.players.length === 0) {
+      return interaction.reply({ content: 'Get some more players before you start the game!' });
     }
 
-    const numberOfTeams = 2;
-    const createdTeams = greedyPartitioning(activeGame.players, numberOfTeams);
-    const blueTeam = { team: createdTeams[0], totalMmr: createdTeams[0].reduce((sum, { mmr }) => sum + mmr, 0) };
-    const redTeam = { team: createdTeams[1], totalMmr: createdTeams[1].reduce((sum, { mmr }) => sum + mmr, 0) };
+    if (activeGame.players.length % 2 !== 0) {
+      return interaction.reply({ content: 'You need an even amount of players to start the game.' });
+    }
+
+    const NUMBER_OF_TEAMS = 2;
+    const createdTeams = greedyPartitioning(activeGame.players, NUMBER_OF_TEAMS);
+    const blueTeam = { team: createdTeams[0], totalRating: createdTeams[0].reduce((sum, { rating }) => sum + rating, 0) };
+    const redTeam = { team: createdTeams[1], totalRating: createdTeams[1].reduce((sum, { rating }) => sum + rating, 0) };
 
     const blueTeamLeader = blueTeam.team[Math.floor(Math.random() * blueTeam.team.length)];
     const redTeamLeader = redTeam.team[Math.floor(Math.random() * redTeam.team.length)];
@@ -34,7 +45,7 @@ module.exports = {
         `**Spelare:**
         ${blueTeam.team.map(player => player.name).join().replaceAll(',', '\n')}`,
       )
-      .setFooter({ text: `Calculated MMR: ${blueTeam.totalMmr}` });
+      .setFooter({ text: `Calculated MMR: ${blueTeam.totalRating}` });
 
     const redTeamEmbed = new EmbedBuilder()
       .setColor('#d53b3e')
@@ -43,7 +54,7 @@ module.exports = {
         `**Spelare:**
         ${redTeam.team.map(player => player.name).join().replaceAll(',', '\n')}`,
       )
-      .setFooter({ text: `Calculated MMR: ${redTeam.totalMmr}` });
+      .setFooter({ text: `Calculated MMR: ${redTeam.totalRating}` });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -109,44 +120,94 @@ module.exports = {
         blueTeamEmbed.setAuthor({ name: 'WINNERS!' });
         redTeamEmbed.setAuthor({ name: 'LOSERS!' });
 
-        blueTeam.team.forEach(player => {
-          stats.players[player.id].mmr += getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses);
-          stats.players[player.id].wins += 1;
+        blueTeam.team.forEach(async player => {
+          const playerId = player.id;
+          const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
+          const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
+          const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames);
+
+          await Player.update(
+            { totalWins: Sequelize.literal('totalWins + 1') },
+            { where: { id: playerId } },
+          );
+          await sequelizeDb.models[activeGame.gameMode.value].update(
+            {
+              rating: Sequelize.literal(`rating + ${ratingChange}`),
+              wins: Sequelize.literal('wins + 1'),
+            },
+            { where: { playerId } },
+          );
         });
 
-        redTeam.team.forEach(player => {
-          stats.players[player.id].mmr -= getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses);
-          stats.players[player.id].losses += 1;
+        redTeam.team.forEach(async player => {
+          const playerId = player.id;
+          const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
+          const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
+          const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames);
+
+          await Player.update(
+            { totalLosses: Sequelize.literal('totalLosses + 1') },
+            { where: { id: playerId } },
+          );
+          await sequelizeDb.models[activeGame.gameMode.value].update(
+            {
+              rating: Sequelize.literal(`rating - ${ratingChange}`),
+              losses: Sequelize.literal('losses + 1'),
+            },
+            { where: { playerId } },
+          );
         });
 
         btnInteraction.reply({
-          content: `${blueTeamEmbed.title} defeats ${redTeamEmbed.title}, GG WP!`,
+          content: `${blueTeamEmbed.data.title} defeats ${redTeamEmbed.data.title}, GG WP!`,
         });
       }
       else {
         redTeamEmbed.setAuthor({ name: 'WINNERS!' });
         blueTeamEmbed.setAuthor({ name: 'LOSERS!' });
 
-        redTeam.team.forEach(player => {
-          stats.players[player.id].mmr += getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses, false);
-          stats.players[player.id].wins += 1;
+        redTeam.team.forEach(async player => {
+          const playerId = player.id;
+          const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
+          const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
+          const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames, false);
+
+          await Player.update(
+            { totalWins: Sequelize.literal('totalWins + 1') },
+            { where: { id: playerId } },
+          );
+          await sequelizeDb.models[activeGame.gameMode.value].update(
+            {
+              rating: Sequelize.literal(`rating + ${ratingChange}`),
+              wins: Sequelize.literal('wins + 1'),
+            },
+            { where: { playerId } },
+          );
         });
 
-        blueTeam.team.forEach(player => {
-          stats.players[player.id].mmr -= getEloChange(blueTeam.totalMmr, redTeam.totalMmr, player.wins + player.losses, false);
-          stats.players[player.id].losses += 1;
+        blueTeam.team.forEach(async player => {
+          const playerId = player.id;
+          const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
+          const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
+          const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames, false);
+
+          await Player.update(
+            { totalLosses: Sequelize.literal('totalLosses + 1') },
+            { where: { id: playerId } },
+          );
+          await sequelizeDb.models[activeGame.gameMode.value].update(
+            {
+              rating: Sequelize.literal(`rating - ${ratingChange}`),
+              losses: Sequelize.literal('losses + 1'),
+            },
+            { where: { playerId } },
+          );
         });
 
         btnInteraction.reply({
-          content: `${redTeamEmbed.title} defeats ${blueTeamEmbed.title}, GG WP!`,
+          content: `${redTeamEmbed.data.title} defeats ${blueTeamEmbed.data.title}, GG WP!`,
         });
       }
-
-      stats.games.totalPlayed += 1;
-
-      fs.writeFile(__dirname + '/../lists/stats.json', JSON.stringify(stats), err => {
-        err && console.log(`Error when writing to text file: ${err}`);
-      });
     });
 
     collector.on('end', () => {
