@@ -4,5 +4,4 @@ node_modules
 config.json
 database.sqlite
 lists/stats.json
-lists/nameTable.js
 database/connection.js
