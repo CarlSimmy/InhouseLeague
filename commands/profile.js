@@ -88,16 +88,16 @@ module.exports = {
       const platinumImage = 'https://i.imgur.com/Pi6HXZH.png';
       const diamondImage = 'https://i.imgur.com/ExCc5g0.png';
 
-      if (rating >= 0 && rating <= 949) {
+      if (rating >= 0 && rating <= 999) {
         return bronzeImage;
       }
-      else if (rating >= 950 && rating <= 1299) {
+      else if (rating >= 1000 && rating <= 1299) {
         return silverImage;
       }
-      else if (rating >= 1300 && rating <= 1649) {
+      else if (rating >= 1300 && rating <= 1449) {
         return goldImage;
       }
-      else if (rating >= 1650 && rating <= 1999) {
+      else if (rating >= 1450 && rating <= 1700) {
         return platinumImage;
       }
       else {
