@@ -9,7 +9,7 @@ module.exports = {
     .setDescription('Add a new team name to the database.')
     .addStringOption(option =>
       option.setName('name')
-        .setDescription('The name of the new team, e.g. "Player\'s YourAddedTeamName"')
+        .setDescription('The new team name, will be written as "Player\'s YourAddedTeamName"')
         .setRequired(true),
     ),
   async execute(interaction) {
