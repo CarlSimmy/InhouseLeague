@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const TeamNames = require('../database/models/teamNames');
+const { Sequelize, Op } = require('sequelize');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,6 +15,17 @@ module.exports = {
   async execute(interaction) {
     const user = interaction.user;
     const chosenTeamName = interaction.options.getString('name');
+    const dbItem = await TeamNames.findOne({
+      where: Sequelize.where(
+        // Lower case the row in Sequelize and check it against the lower case option
+        Sequelize.fn('lower', Sequelize.col('name')),
+        chosenTeamName.toLowerCase(),
+      ),
+    });
+
+    if (dbItem) {
+      return interaction.reply({ content: `Sorry, but the team name **${dbItem.name}** already exists in the database.` });
+    }
 
     await TeamNames.create({
       name: chosenTeamName,
