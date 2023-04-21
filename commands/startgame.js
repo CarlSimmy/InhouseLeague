@@ -7,8 +7,8 @@ const { Sequelize } = require('sequelize');
 const { adminUserId } = require('../config.json');
 const greedyPartitioning = require('../shared/greedyPartitioning');
 const activeGame = require('../lists/activeGame');
-const nameTable = require('../lists/nameTable');
 const Player = require('../database/models/player');
+const TeamNames = require('../database/models/teamNames');
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -32,27 +32,41 @@ module.exports = {
 
     const NUMBER_OF_TEAMS = 2;
     const createdTeams = greedyPartitioning(activeGame.players, NUMBER_OF_TEAMS);
-    const blueTeam = { team: createdTeams[0], totalRating: createdTeams[0].reduce((sum, { rating }) => sum + rating, 0) };
-    const redTeam = { team: createdTeams[1], totalRating: createdTeams[1].reduce((sum, { rating }) => sum + rating, 0) };
+    const blueTeam = { players: createdTeams[0], totalRating: createdTeams[0].reduce((sum, { rating }) => sum + rating, 0), name: '' };
+    const redTeam = { players: createdTeams[1], totalRating: createdTeams[1].reduce((sum, { rating }) => sum + rating, 0), name: '' };
+    blueTeam.name = await TeamNames.findOne({
+      order: Sequelize.literal('random()'),
+      limit: 1,
+      attributes: ['name'],
+    }).then(list => list.name);
 
-    const blueTeamLeader = blueTeam.team[Math.floor(Math.random() * blueTeam.team.length)];
-    const redTeamLeader = redTeam.team[Math.floor(Math.random() * redTeam.team.length)];
+    while (redTeam.name === '' || redTeam.name === blueTeam.name) {
+      redTeam.name = await TeamNames.findOne({
+        order: Sequelize.literal('random()'),
+        limit: 1,
+        attributes: ['name'],
+      }).then(list => list.name);
+    }
+
+
+    const blueTeamLeader = blueTeam.players[Math.floor(Math.random() * blueTeam.players.length)];
+    const redTeamLeader = redTeam.players[Math.floor(Math.random() * redTeam.players.length)];
 
     const blueTeamEmbed = new EmbedBuilder()
       .setColor('#4752c4')
-      .setTitle(`__${blueTeamLeader.name}'s ${nameTable[Math.floor(Math.random() * nameTable.length)]}__`)
+      .setTitle(`__${blueTeamLeader.name}'s ${blueTeam.name}__`)
       .setDescription(
         `**Spelare:**
-        ${blueTeam.team.map(player => player.name).join().replaceAll(',', '\n')}`,
+        ${blueTeam.players.map(player => player.name).join().replaceAll(',', '\n')}`,
       )
       .setFooter({ text: `Calculated MMR: ${blueTeam.totalRating}` });
 
     const redTeamEmbed = new EmbedBuilder()
       .setColor('#d53b3e')
-      .setTitle(`__${redTeamLeader.name}'s ${nameTable[Math.floor(Math.random() * nameTable.length)]}__`)
+      .setTitle(`__${redTeamLeader.name}'s ${redTeam.name}__`)
       .setDescription(
         `**Spelare:**
-        ${redTeam.team.map(player => player.name).join().replaceAll(',', '\n')}`,
+        ${redTeam.players.map(player => player.name).join().replaceAll(',', '\n')}`,
       )
       .setFooter({ text: `Calculated MMR: ${redTeam.totalRating}` });
 
@@ -120,7 +134,7 @@ module.exports = {
         blueTeamEmbed.setAuthor({ name: 'WINNERS!' });
         redTeamEmbed.setAuthor({ name: 'LOSERS!' });
 
-        blueTeam.team.forEach(async player => {
+        blueTeam.players.forEach(async player => {
           const playerId = player.id;
           const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
           const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
@@ -139,7 +153,7 @@ module.exports = {
           );
         });
 
-        redTeam.team.forEach(async player => {
+        redTeam.players.forEach(async player => {
           const playerId = player.id;
           const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
           const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
@@ -166,7 +180,7 @@ module.exports = {
         redTeamEmbed.setAuthor({ name: 'WINNERS!' });
         blueTeamEmbed.setAuthor({ name: 'LOSERS!' });
 
-        redTeam.team.forEach(async player => {
+        redTeam.players.forEach(async player => {
           const playerId = player.id;
           const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
           const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
@@ -185,7 +199,7 @@ module.exports = {
           );
         });
 
-        blueTeam.team.forEach(async player => {
+        blueTeam.players.forEach(async player => {
           const playerId = player.id;
           const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
           const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
