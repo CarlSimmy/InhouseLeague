@@ -115,9 +115,10 @@ module.exports = {
 
     const profileEmbed = new EmbedBuilder()
       .setColor(getGameModeColors(chosenGameMode))
-      .setTitle(`${optionsUser?.username || interaction.member.user.username}'s stats`)
+      .setTitle(`__${optionsUser?.username || interaction.member.user.username}'s stats__`)
       .setImage(getRankImage(rating))
       .addFields(
+        { name: 'Game mode', value: `${gameModeInfo.icon || ''} ${gameModeInfo.name || 'Overall'}` },
         { name: 'Rating', value: rating?.toString() || 'No overall rating exists.' },
         { name: 'Current placement', value: playerStanding || 'No overall placement exists.' },
         { name: 'Wins', value: wins?.toString(), inline: true },

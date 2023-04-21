@@ -20,17 +20,16 @@ module.exports = {
     ),
   async execute(interaction) {
     const chosenGameMode = interaction.options.getString('gamemode');
+    const gameModeIcon = getGameModeInfo(chosenGameMode).icon;
 
 
     function getShowdownRules() {
       const rules = `
-**Game type:**
-
+**Game type**
 Summoner's Rift / Howling Abyss
 Blind Pick
 
-**Win conditions:**
-
+**Win conditions**
 - Get First blood (or first to 2 kills if both players agree)
 - Get a creep score of 100
 - Destroy the first tower
@@ -41,25 +40,21 @@ Blind Pick
 
     function getHowlingAbyssRules() {
       const rules = `
-**Game type:**
-
+**Game type**
 Howling Abyss
 Tournament draft
 
-**Summoner spell rules:**
-
+**Summoner spell rules**
 All summoner spells picked in a team must be **unique**, i.e. only one flash per team and so on.
 
-**Banned Items:**
-
+**Banned items**
 - Anathema's Chains <:anathemas:1099052047992627231>
 - Guardian's Blade <:blade:1099052051176116326>
 - Guardian's Hammer <:hammer:1099052053063532685>
 - Guardian's Horn <:horn:1099052054695120986>
 - Guardian's Orb <:orb:1099052059912843434>
 
-**Banned Champions:**
-
+**Banned champions**
 - Aatrox <:AatroxSquare:1099052046826606692>
 - Anivia <:anivia:1099052049997512704>
 - Morgana <:morgana:1099075079243038750>
@@ -91,7 +86,7 @@ All summoner spells picked in a team must be **unique**, i.e. only one flash per
 
     const rulesEmbed = new EmbedBuilder()
       .setColor(getGameModeColors(chosenGameMode))
-      .setTitle(`__${getGameModeInfo(chosenGameMode).name} Rules__`)
+      .setTitle(`${gameModeIcon} __${getGameModeInfo(chosenGameMode).name} Rules__`)
       .setDescription(getGameModeRules());
 
     interaction.reply({ embeds: [rulesEmbed] });

@@ -52,8 +52,11 @@ module.exports = {
 
     const leaderboardEmbed = new EmbedBuilder()
       .setColor('#d4af37')
-      .setTitle(`${gameModeInfo.name} Leaderboard`)
-      .setDescription(await formattedLeaderboard);
+      .setTitle('__Leaderboard__')
+      .addFields(
+        { name: 'Game mode', value: `${gameModeInfo.icon} ${gameModeInfo.name}` },
+        { name: 'Players', value: await formattedLeaderboard },
+      );
 
     interaction.reply({ embeds: [leaderboardEmbed] });
   },

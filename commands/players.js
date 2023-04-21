@@ -4,13 +4,14 @@ const sequelizeDb = require('../database/connection');
 
 const activeGame = require('../lists/activeGame');
 const Player = require('../database/models/player');
+const getGameModeColors = require('../shared/getGameModeColors');
+const getGameModeInfo = require('../shared/getGameModeInfo');
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');
 const SummonersRift = require('../database/models/summonersRift');
-const getGameModeColors = require('../shared/getGameModeColors');
 /* eslint-disable no-unused-vars */
 
 module.exports = {
@@ -31,8 +32,11 @@ module.exports = {
 
     const playerListEmbed = new EmbedBuilder()
       .setColor(getGameModeColors(activeGame.gameMode.value))
-      .setTitle(`Active players in the ${activeGame.gameMode.name} game:`)
-      .setDescription(await playerInfo || 'No players have joined yet.');
+      .setTitle('__Current game__')
+      .addFields(
+        { name: 'Game mode', value: `${getGameModeInfo(activeGame.gameMode.value).icon} ${activeGame.gameMode.name}` },
+        { name: 'Active players', value: await playerInfo || 'No players have joined yet.' },
+      );
 
     interaction.reply({ embeds: [playerListEmbed] });
   },
