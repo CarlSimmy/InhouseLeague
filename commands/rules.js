@@ -45,7 +45,7 @@ Howling Abyss
 Tournament draft
 
 **Summoner spell rules**
-All summoner spells picked in a team must be **unique**, i.e. only one flash per team and so on.
+All summoner spells picked in a team must be *unique*, i.e. only one flash per team and so on.
 
 **Banned items**
 - Anathema's Chains <:anathemas:1099052047992627231>

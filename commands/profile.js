@@ -4,13 +4,13 @@ const sequelizeDb = require('../database/connection');
 
 const Player = require('../database/models/player');
 const getGameModeInfo = require('../shared/getGameModeInfo');
+const getGameModeColors = require('../shared/getGameModeColors');
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');
 const SummonersRift = require('../database/models/summonersRift');
-const getGameModeColors = require('../shared/getGameModeColors');
 /* eslint-disable no-unused-vars */
 
 module.exports = {
