@@ -53,14 +53,9 @@ module.exports = {
     const filter = async (userInteraction) => {
       const user = userInteraction.user;
 
-      if (activeGame.players.find(id => id === user.id)) {
+      if (activeGame.players.find(player => player.id === user.id)) {
         await userInteraction.deferReply();
         await userInteraction.editReply({ content: `${user}, it looks like you've already joined.`, ephemeral: true });
-        return false;
-      }
-      else if (activeGame.players.length >= gameModeInfo.maxPlayers) {
-        await userInteraction.deferReply();
-        await userInteraction.editReply({ content: `Sorry ${user}, but the current game is full.`, ephemeral: true });
         return false;
       }
 
