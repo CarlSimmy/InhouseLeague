@@ -26,11 +26,11 @@ module.exports = {
     function getShowdownRules() {
       const rules = `
 **Game type**
-Summoner's Rift / Howling Abyss
+Howling Abyss or Summoner's Rift
 Blind Pick
 
 **Win conditions**
-- Get First blood (or first to 2 kills if both players agree)
+- Get First blood (or first to 2 kills if both players agree beforehand)
 - Get a creep score of 100
 - Destroy the first tower
       `;
