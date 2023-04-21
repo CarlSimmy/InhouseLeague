@@ -52,21 +52,21 @@ All summoner spells picked in a team must be **unique**, i.e. only one flash per
 
 **Banned Items:**
 
-- Anathema's Chains
-- Guardian's Blade
-- Guardian's Hammer
-- Guardian's Horn
-- Guardian's Orb
+- Anathema's Chains <:anathemas:1099052047992627231>
+- Guardian's Blade <:blade:1099052051176116326>
+- Guardian's Hammer <:hammer:1099052053063532685>
+- Guardian's Horn <:horn:1099052054695120986>
+- Guardian's Orb <:orb:1099052059912843434>
 
 **Banned Champions:**
 
-- Aatrox
-- Anivia
-- Morgana
-- Nasus
-- Taric
-- Trundle
-- Yorick
+- Aatrox <:AatroxSquare:1099052046826606692>
+- Anivia <:anivia:1099052049997512704>
+- Morgana <:morgana:1099075079243038750>
+- Nasus <:nasus:1099052058369327144>
+- Taric <:taric:1099052062781747250>
+- Trundle <:trundle:1099064061964066948>
+- Yorick <:yorick:1099065707129487491>
       `;
 
       return rules;
