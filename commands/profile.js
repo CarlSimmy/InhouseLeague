@@ -10,6 +10,7 @@ const getGameModeInfo = require('../shared/getGameModeInfo');
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');
 const SummonersRift = require('../database/models/summonersRift');
+const getGameModeColors = require('../shared/getGameModeColors');
 /* eslint-disable no-unused-vars */
 
 module.exports = {
@@ -97,7 +98,7 @@ module.exports = {
       else if (rating >= 1300 && rating <= 1449) {
         return goldImage;
       }
-      else if (rating >= 1450 && rating <= 1700) {
+      else if (rating >= 1450 && rating <= 1699) {
         return platinumImage;
       }
       else {
@@ -113,7 +114,7 @@ module.exports = {
     const playerStanding = await getPlayerStanding();
 
     const profileEmbed = new EmbedBuilder()
-      .setColor('#0099ff')
+      .setColor(getGameModeColors(chosenGameMode))
       .setTitle(`${optionsUser?.username || interaction.member.user.username}'s stats`)
       .setImage(getRankImage(rating))
       .addFields(

@@ -10,6 +10,7 @@ const Player = require('../database/models/player');
 const Showdown = require('../database/models/showdown');
 const HowlingAbyss = require('../database/models/howlingAbyss');
 const SummonersRift = require('../database/models/summonersRift');
+const getGameModeColors = require('../shared/getGameModeColors');
 /* eslint-disable no-unused-vars */
 
 module.exports = {
@@ -29,7 +30,7 @@ module.exports = {
     })).then(info => info.join().replaceAll(',', '\n'));
 
     const playerListEmbed = new EmbedBuilder()
-      .setColor('#0099ff')
+      .setColor(getGameModeColors(activeGame.gameMode.value))
       .setTitle(`Active players in the ${activeGame.gameMode.name} game:`)
       .setDescription(await playerInfo || 'No players have joined yet.');
 
