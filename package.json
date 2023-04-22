@@ -1,5 +1,5 @@
 {
-  "name": "LeagueMMR",
+  "name": "inhouseleague",
   "version": "1.0.0",
   "description": "Discord bot for 5v5 LoL",
   "main": "index.js",
