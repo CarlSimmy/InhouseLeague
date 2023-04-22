@@ -3,5 +3,4 @@ node_modules
 .vscode
 config.json
 database.sqlite
-lists/stats.json
 database/connection.js
