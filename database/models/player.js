@@ -1,26 +1,27 @@
-const Sequelize = require('sequelize');
-const sequelizeDb = require('../connection');
+import { STRING, INTEGER } from 'sequelize';
+
+import sequelizeDb from '../connection.js';
 
 const Player = sequelizeDb.define('player', {
   id: {
-    type: Sequelize.STRING,
+    type: STRING,
     primaryKey: true,
     allowNull: false,
   },
   name: {
-    type: Sequelize.STRING,
+    type: STRING,
     allowNull: false,
   },
   totalWins: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   totalLosses: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
 });
 
-module.exports = Player;
+export default Player;

@@ -1,44 +1,42 @@
-const { REST, Routes } = require('discord.js');
-const { clientId, guildId, token } = require('./config.json');
-const fs = require('node:fs');
-const path = require('node:path');
+import { REST, Routes } from 'discord.js';
+import fs from 'fs';
+import config from './config.js';
 
-const commands = [];
-// Grab all the command files from the commands directory you created earlier
-const foldersPath = path.join(__dirname, 'commands');
+const commandArray = [];
 
-// Grab all the command files from the commands directory you created earlier
-const commandFiles = fs.readdirSync(foldersPath).filter(file => file.endsWith('.js'));
-// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+// Fetch all js files in the commands folder
+const commandFiles = fs
+  .readdirSync('./commands')
+  .filter((file) => file.endsWith('.js'));
+
 for (const file of commandFiles) {
-  const filePath = path.join(foldersPath, file);
-  const command = require(filePath);
+  const command = await import(`./commands/${file}`);
+
   if ('data' in command && 'execute' in command) {
-    commands.push(command.data.toJSON());
+    commandArray.push(command.data.toJSON());
   }
   else {
-    console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+    console.log(`[WARNING] The command ${file} is missing a required "data" or "execute" property.`);
   }
 }
 
 // Construct and prepare an instance of the REST module
-const rest = new REST().setToken(token);
+const rest = new REST().setToken(config.token);
 
-// and deploy your commands!
+// Deploy commands
 (async () => {
   try {
-    console.log(`Started refreshing ${commands.length} application (/) commands.`);
+    console.log(`Started refreshing ${commandArray.length} application (/) commands.`);
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
-      Routes.applicationGuildCommands(clientId, guildId),
-      { body: commands },
+      Routes.applicationGuildCommands(config.clientId, config.guildId),
+      { body: commandArray },
     );
 
     console.log(`Successfully reloaded ${data.length} application (/) commands.`);
   }
   catch (error) {
-    // And of course, make sure you catch and log any errors!
     console.error(error);
   }
 })();

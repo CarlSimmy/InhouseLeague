@@ -1,28 +1,28 @@
-const Sequelize = require('sequelize');
+import { INTEGER, STRING } from 'sequelize';
 
-const sequelizeDb = require('../connection');
+import sequelizeDb from '../connection.js';
 
 /* For keeping and adding team names that are used when playing */
 const TeamNames = sequelizeDb.define('teamNames', {
   id: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     primaryKey: true,
     allowNull: false,
     unique: true,
     autoIncrement: true,
   },
   name: {
-    type: Sequelize.STRING,
+    type: STRING,
     allowNull: false,
   },
   creatorId: {
-    type: Sequelize.STRING,
+    type: STRING,
     allowNull: false,
   },
   creatorName: {
-    type: Sequelize.STRING,
+    type: STRING,
     allowNull: false,
   },
 });
 
-module.exports = TeamNames;
+export default TeamNames;

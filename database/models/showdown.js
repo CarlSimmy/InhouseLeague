@@ -1,22 +1,22 @@
-const Sequelize = require('sequelize');
+import { INTEGER } from 'sequelize';
 
-const sequelizeDb = require('../connection');
-const Player = require('./player');
+import sequelizeDb from '../connection.js';
+import Player from './player.js';
 
 /* Showdown refers to 1v1 games */
 const Showdown = sequelizeDb.define('showdown', {
   wins: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   losses: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   rating: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 1200,
   },
@@ -25,4 +25,4 @@ const Showdown = sequelizeDb.define('showdown', {
 Showdown.belongsTo(Player, { foreignKey: 'playerId' });
 Player.hasOne(Showdown);
 
-module.exports = Showdown;
+export default Showdown;

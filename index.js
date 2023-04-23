@@ -1,14 +1,15 @@
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
-const fs = require('fs');
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { readdirSync } from 'fs';
+
+import config from './config.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
 
 client.commands = new Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
+  const command = await import(`./commands/${file}`);
   // Set a new item in the Collection
   // With the key as the command name and the value as the exported module
   client.commands.set(command.data.name, command);
@@ -20,7 +21,7 @@ client.once('ready', () => {
 });
 
 // Login to Discord with your client's token
-client.login(token);
+client.login(config.token);
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;

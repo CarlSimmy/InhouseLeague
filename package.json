@@ -4,6 +4,7 @@
   "description": "Discord bot for 5v5 LoL",
   "main": "index.js",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "start": "nodemon index.js"
   },

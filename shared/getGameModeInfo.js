@@ -18,4 +18,4 @@ const getGameModeInfo = (gameMode) => {
   return staticGameModeInformation;
 };
 
-module.exports = getGameModeInfo;
+export default getGameModeInfo;

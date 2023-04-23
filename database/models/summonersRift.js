@@ -1,22 +1,22 @@
-const Sequelize = require('sequelize');
+import { INTEGER } from 'sequelize';
 
-const sequelizeDb = require('../connection');
-const Player = require('./player');
+import sequelizeDb from '../connection.js';
+import Player from './player.js';
 
 /* Summoners Rift refers to games played on that specific map. Standard game mode usually played 4v4 or 5v5 */
 const SummonersRift = sequelizeDb.define('summonersRift', {
   wins: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   losses: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   rating: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 1200,
   },
@@ -25,4 +25,4 @@ const SummonersRift = sequelizeDb.define('summonersRift', {
 SummonersRift.belongsTo(Player, { foreignKey: 'playerId' });
 Player.hasOne(SummonersRift);
 
-module.exports = SummonersRift;
+export default SummonersRift;

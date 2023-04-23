@@ -19,4 +19,4 @@ const greedyPartitioning = (players, numberOfTeams) => {
   return out.map(team => team.elements);
 };
 
-module.exports = greedyPartitioning;
+export default greedyPartitioning;

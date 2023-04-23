@@ -1,35 +1,35 @@
-const Sequelize = require('sequelize');
+import { INTEGER, STRING, ENUM } from 'sequelize';
 
-const sequelizeDb = require('../connection');
-const Player = require('./player');
+import sequelizeDb from '../connection.js';
+import Player from './player.js';
 
 /* Match history for all played games */
 const Match = sequelizeDb.define('match', {
   id: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
     allowNull: false,
   },
   team1: {
-    type: Sequelize.STRING,
+    type: STRING,
     allowNull: false,
   },
   team2: {
-    type: Sequelize.STRING,
+    type: STRING,
     allowNull: false,
   },
   gameMode: {
-    type: Sequelize.ENUM('showdown', 'howlingAbyss', 'summonersRift'),
+    type: ENUM('showdown', 'howlingAbyss', 'summonersRift'),
     allowNull: false,
   },
   team1RatingChange: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   team2RatingChange: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
@@ -38,4 +38,4 @@ const Match = sequelizeDb.define('match', {
 Match.belongsToMany(Player, { through: 'MatchPlayer' });
 Player.belongsToMany(Match, { through: 'MatchPlayer' });
 
-module.exports = Match;
+export default Match;

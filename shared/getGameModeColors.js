@@ -21,4 +21,4 @@ const getGameModeColors = (gameMode) => {
   return gameModeColor;
 };
 
-module.exports = getGameModeColors;
+export default getGameModeColors;

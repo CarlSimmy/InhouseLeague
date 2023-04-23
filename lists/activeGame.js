@@ -3,4 +3,4 @@ const activeGame = {
   gameMode: { name: '', value: '', maxPlayers: 0 },
 };
 
-module.exports = activeGame;
+export default activeGame;

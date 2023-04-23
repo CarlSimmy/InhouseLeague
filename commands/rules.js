@@ -1,30 +1,28 @@
-const { EmbedBuilder } = require('discord.js');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+import { EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const getGameModeColors = require('../shared/getGameModeColors');
-const getGameModeInfo = require('../shared/getGameModeInfo');
+import getGameModeColors from '../shared/getGameModeColors.js';
+import getGameModeInfo from '../shared/getGameModeInfo.js';
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('rules')
-    .setDescription('Check the inhouse LoL rules.')
-    .addStringOption(option =>
-      option.setName('gamemode')
-        .setDescription('Outputs the rules for a specific game mode.')
-        .addChoices(
-          { name: 'Showdown', value: 'showdown' },
-          { name: 'Howling Abyss', value: 'howlingAbyss' },
-          { name: 'Summoner\'s Rift', value: 'summonersRift' },
-        )
-        .setRequired(true),
-    ),
-  async execute(interaction) {
-    const chosenGameMode = interaction.options.getString('gamemode');
-    const gameModeIcon = getGameModeInfo(chosenGameMode).icon;
+export const data = new SlashCommandBuilder()
+  .setName('rules')
+  .setDescription('Check the inhouse LoL rules.')
+  .addStringOption(option => option.setName('gamemode')
+    .setDescription('Outputs the rules for a specific game mode.')
+    .addChoices(
+      { name: 'Showdown', value: 'showdown' },
+      { name: 'Howling Abyss', value: 'howlingAbyss' },
+      { name: 'Summoner\'s Rift', value: 'summonersRift' },
+    )
+    .setRequired(true),
+  );
+export async function execute(interaction) {
+  const chosenGameMode = interaction.options.getString('gamemode');
+  const gameModeIcon = getGameModeInfo(chosenGameMode).icon;
 
 
-    function getShowdownRules() {
-      const rules = `
+  function getShowdownRules() {
+    const rules = `
 **Game type**
 Howling Abyss or Summoner's Rift
 Blind Pick
@@ -35,11 +33,11 @@ Blind Pick
 - Destroy the first tower
       `;
 
-      return rules;
-    }
+    return rules;
+  }
 
-    function getHowlingAbyssRules() {
-      const rules = `
+  function getHowlingAbyssRules() {
+    const rules = `
 **Game type**
 Howling Abyss
 Tournament draft
@@ -64,31 +62,30 @@ All summoner spells picked in a team must be *unique*, i.e. only one flash per t
 - Yorick <:yorick:1099065707129487491>
       `;
 
-      return rules;
+    return rules;
+  }
+
+  function getSummonersRiftRules() {
+    const rules = 'No rules are currently specified for this game mode.';
+
+    return rules;
+  }
+
+  function getGameModeRules() {
+    switch (chosenGameMode) {
+    case 'showdown':
+      return getShowdownRules();
+    case 'howlingAbyss':
+      return getHowlingAbyssRules();
+    case 'summonersRift':
+      return getSummonersRiftRules();
     }
+  }
 
-    function getSummonersRiftRules() {
-      const rules = 'No rules are currently specified for this game mode.';
+  const rulesEmbed = new EmbedBuilder()
+    .setColor(getGameModeColors(chosenGameMode))
+    .setTitle(`${gameModeIcon} __${getGameModeInfo(chosenGameMode).name} Rules__`)
+    .setDescription(getGameModeRules());
 
-      return rules;
-    }
-
-    function getGameModeRules() {
-      switch (chosenGameMode) {
-      case 'showdown':
-        return getShowdownRules();
-      case 'howlingAbyss':
-        return getHowlingAbyssRules();
-      case 'summonersRift':
-        return getSummonersRiftRules();
-      }
-    }
-
-    const rulesEmbed = new EmbedBuilder()
-      .setColor(getGameModeColors(chosenGameMode))
-      .setTitle(`${gameModeIcon} __${getGameModeInfo(chosenGameMode).name} Rules__`)
-      .setDescription(getGameModeRules());
-
-    interaction.reply({ embeds: [rulesEmbed] });
-  },
-};
+  interaction.reply({ embeds: [rulesEmbed] });
+}

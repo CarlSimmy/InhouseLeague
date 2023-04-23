@@ -1,14 +1,12 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const activeGame = require('../lists/activeGame');
+import activeGame from '../lists/activeGame.js';
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('resetgame')
-    .setDescription('Resets the active game.'),
-  async execute(interaction) {
-    activeGame.players.length = 0;
+export const data = new SlashCommandBuilder()
+  .setName('resetgame')
+  .setDescription('Resets the active game.');
+export async function execute(interaction) {
+  activeGame.players.length = 0;
 
-    interaction.reply({ content: 'The current game has been successfully reset.' });
-  },
-};
+  interaction.reply({ content: 'The current game has been successfully reset.' });
+}
