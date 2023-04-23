@@ -1,16 +1,16 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const activeGame = require('../lists/activeGame');
-const Player = require('../database/models/player');
-const getGameModeInfo = require('../shared/getGameModeInfo');
-const sequelizeDb = require('../database/connection');
+const activeGame = require('../lists/activeGame').default;
+const Player = require('../database/models/player').default;
+const getGameModeInfo = require('../shared/getGameModeInfo').default;
+const sequelizeDb = require('../database/connection').default;
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
-const Showdown = require('../database/models/showdown');
-const HowlingAbyss = require('../database/models/howlingAbyss');
-const SummonersRift = require('../database/models/summonersRift');
+const Showdown = require('../database/models/showdown').default;
+const HowlingAbyss = require('../database/models/howlingAbyss').default;
+const SummonersRift = require('../database/models/summonersRift').default;
 /* eslint-disable no-unused-vars */
 
 module.exports = {
@@ -105,7 +105,9 @@ module.exports = {
 
     // TODO: Fix so I don't have to type length + 1
     collector.on('end', () => {
-      message.reply(`Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length + 1}/${gameModeInfo.maxPlayers})`);
+      if (activeGame.players.length + 1 === gameModeInfo.maxPlayers) {
+        message.reply(`Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length + 1}/${gameModeInfo.maxPlayers})`);
+      }
       row.components[0].setDisabled(true);
 
       // Edit message button with new disabled state
