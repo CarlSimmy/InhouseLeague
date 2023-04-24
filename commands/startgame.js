@@ -5,10 +5,10 @@ import { Sequelize } from 'sequelize';
 
 import sequelizeDb from '../database/connection.js';
 import config from '../config.js';
-import greedyPartitioning from '../shared/greedyPartitioning.js';
 import activeGame from '../lists/activeGame.js';
 import Player from '../database/models/player.js';
 import TeamNames from '../database/models/teamNames.js';
+import createEqualTeams from '../shared/createEqualTeams.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -29,17 +29,18 @@ export async function execute(interaction) {
     return interaction.reply({ content: 'You need an even amount of players to start the game.' });
   }
 
-  const NUMBER_OF_TEAMS = 2;
-  const createdTeams = greedyPartitioning(activeGame.players, NUMBER_OF_TEAMS);
-  const blueTeam = { players: createdTeams[0], totalRating: createdTeams[0].reduce((sum, { rating }) => sum + rating, 0), name: '' };
-  const redTeam = { players: createdTeams[1], totalRating: createdTeams[1].reduce((sum, { rating }) => sum + rating, 0), name: '' };
+  const createdTeams = createEqualTeams(activeGame.players);
+  const blueTeam = createdTeams[0];
+  const redTeam = createdTeams[1];
+
   blueTeam.name = await TeamNames.findOne({
     order: Sequelize.literal('random()'),
     limit: 1,
     attributes: ['name'],
   }).then(list => list.name);
 
-  while (redTeam.name === '' || redTeam.name === blueTeam.name) {
+  // Generate a new name for the red team that is not the same as the name of the blue team
+  while (redTeam.name === 'TBD' || redTeam.name === blueTeam.name) {
     redTeam.name = await TeamNames.findOne({
       order: Sequelize.literal('random()'),
       limit: 1,
@@ -47,9 +48,8 @@ export async function execute(interaction) {
     }).then(list => list.name);
   }
 
-
-  const blueTeamLeader = blueTeam.players[Math.floor(Math.random() * blueTeam.players.length)];
-  const redTeamLeader = redTeam.players[Math.floor(Math.random() * redTeam.players.length)];
+  const blueTeamLeader = blueTeam.players[0];
+  const redTeamLeader = redTeam.players[0];
 
   const blueTeamEmbed = new EmbedBuilder()
     .setColor('#4752c4')

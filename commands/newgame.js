@@ -66,6 +66,7 @@ export async function execute(interaction) {
     time: 15 * 60000,
   });
 
+  // When a user has pressed the join button
   collector.on('collect', async (btnInteraction) => {
     const playerId = btnInteraction.user.id;
     const playerName = btnInteraction.user.username;
