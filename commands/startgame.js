@@ -100,7 +100,7 @@ export async function execute(interaction) {
     time: 120 * 60000,
   });
 
-  const getEloChange = (blueMmr, redMmr, gamesPlayed, isBlueWinner = true) => {
+  const getEloChange = (blueMmr, redMmr, gamesPlayed, isBlueWinner) => {
     const PLACEMENT_FACTOR = 90;
     const ADJUSTMENT_FACTOR = 60;
     const STANDARD_FACTOR = 30;
@@ -126,90 +126,57 @@ export async function execute(interaction) {
   };
 
   collector.on('collect', btnInteraction => {
-    if (btnInteraction.customId === 'blue-wins') {
-      blueTeamEmbed.setAuthor({ name: 'WINNERS!' });
-      redTeamEmbed.setAuthor({ name: 'LOSERS!' });
+    const isBlueWinner = btnInteraction.customId === 'blue-wins' ? true : false;
 
-      blueTeam.players.forEach(async (player) => {
-        const playerId = player.id;
-        const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
-        const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
-        const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames);
+    activeGame.players.forEach(async (player) => {
+      const isBlueTeamPlayer = blueTeam.players.find(blueTeamPlayer => blueTeamPlayer.id === player.id) ? true : false;
+      const isBlueTeamPlayerAndWinner = isBlueTeamPlayer && isBlueWinner;
+      const isRedTeamPlayerAndWinner = !isBlueTeamPlayer && !isBlueWinner;
+      const isPlayerOnWinningTeam = isBlueTeamPlayerAndWinner || isRedTeamPlayerAndWinner;
+      const playerId = player.id;
+      const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
+      const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
+      const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames, isBlueTeamPlayerAndWinner ? true : false);
 
-        await Player.update(
-          { totalWins: Sequelize.literal('totalWins + 1') },
-          { where: { id: playerId } });
-        await sequelizeDb.models[activeGame.gameMode.value].update(
-          {
-            rating: Sequelize.literal(`rating + ${ratingChange}`),
-            wins: Sequelize.literal('wins + 1'),
-          },
-          { where: { playerId } });
-      });
+      await Player.update(
+        {
+          totalWins: isPlayerOnWinningTeam ?
+            Sequelize.literal('totalWins + 1') :
+            Sequelize.literal('totalWins'),
 
-      redTeam.players.forEach(async (player) => {
-        const playerId = player.id;
-        const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
-        const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
-        const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames);
+          totalLosses: !isPlayerOnWinningTeam ?
+            Sequelize.literal('totalLosses + 1') :
+            Sequelize.literal('totalLosses'),
+        },
+        { where: { id: playerId } },
+      );
+      await sequelizeDb.models[activeGame.gameMode.value].update(
+        {
+          rating: isPlayerOnWinningTeam ?
+            Sequelize.literal(`rating + ${ratingChange}`) :
+            Sequelize.literal(`rating - ${ratingChange}`),
 
-        await Player.update(
-          { totalLosses: Sequelize.literal('totalLosses + 1') },
-          { where: { id: playerId } });
-        await sequelizeDb.models[activeGame.gameMode.value].update(
-          {
-            rating: Sequelize.literal(`rating - ${ratingChange}`),
-            losses: Sequelize.literal('losses + 1'),
-          },
-          { where: { playerId } });
-      });
+          wins: isPlayerOnWinningTeam ?
+            Sequelize.literal('wins + 1') :
+            Sequelize.literal('wins'),
 
-      btnInteraction.reply({
-        content: `${blueTeamEmbed.data.title} defeats ${redTeamEmbed.data.title}, GG WP!`,
-      });
-    }
-    else {
-      redTeamEmbed.setAuthor({ name: 'WINNERS!' });
-      blueTeamEmbed.setAuthor({ name: 'LOSERS!' });
+          losses: !isPlayerOnWinningTeam ?
+            Sequelize.literal('losses + 1') :
+            Sequelize.literal('losses'),
+        },
+        { where: { playerId } },
+      );
+    });
 
-      redTeam.players.forEach(async (player) => {
-        const playerId = player.id;
-        const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
-        const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
-        const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames, false);
+    blueTeamEmbed.setAuthor({ name: isBlueWinner ? 'WINNERS!' : 'LOSERS!' });
+    redTeamEmbed.setAuthor({ name: !isBlueWinner ? 'WINNERS!' : 'LOSERS!' });
 
-        await Player.update(
-          { totalWins: Sequelize.literal('totalWins + 1') },
-          { where: { id: playerId } });
-        await sequelizeDb.models[activeGame.gameMode.value].update(
-          {
-            rating: Sequelize.literal(`rating + ${ratingChange}`),
-            wins: Sequelize.literal('wins + 1'),
-          },
-          { where: { playerId } });
-      });
-
-      blueTeam.players.forEach(async (player) => {
-        const playerId = player.id;
-        const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: playerId } });
-        const totalPlayedGames = gameModePlayer.wins + gameModePlayer.losses;
-        const ratingChange = getEloChange(blueTeam.totalRating, redTeam.totalRating, totalPlayedGames, false);
-
-        await Player.update(
-          { totalLosses: Sequelize.literal('totalLosses + 1') },
-          { where: { id: playerId } });
-        await sequelizeDb.models[activeGame.gameMode.value].update(
-          {
-            rating: Sequelize.literal(`rating - ${ratingChange}`),
-            losses: Sequelize.literal('losses + 1'),
-          },
-          { where: { playerId } });
-      });
-
-      btnInteraction.reply({
-        content: `${redTeamEmbed.data.title} defeats ${blueTeamEmbed.data.title}, GG WP!`,
-      });
-    }
+    btnInteraction.reply({
+      content: isBlueWinner ?
+        `${blueTeamEmbed.data.title} defeats ${redTeamEmbed.data.title}` :
+        `${redTeamEmbed.data.title} defeats ${blueTeamEmbed.data.title}` +
+        ', GG WP!',
+    });
   });
 
   collector.on('end', () => {
