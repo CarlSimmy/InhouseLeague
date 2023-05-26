@@ -10,6 +10,7 @@ import getGameModeInfo from '../shared/getGameModeInfo.js';
 import Showdown from '../database/models/showdown.js';
 import HowlingAbyss from '../database/models/howlingAbyss.js';
 import SummonersRift from '../database/models/summonersRift.js';
+import getGameModeColors from '../shared/getGameModeColors.js';
 /* eslint-disable no-unused-vars */
 
 export const data = new SlashCommandBuilder()
@@ -45,11 +46,24 @@ export async function execute(interaction) {
     const playerName = playerObj.name;
     const playerRating = player.rating;
 
-    return `**${placement}. ${playerName}**  *(${playerRating})*`;
-  })).then(info => info.join().replaceAll(',', '\n'));
+    return `**${placement}․ ${playerName}** *(${playerRating})*`;
+  })).then(leaderboardRow => {
+    // Discord emojis for gold, silver and bronze medals
+    const medals = [':first_place:', ':second_place:', ':third_place:'];
+
+    const output = leaderboardRow.map((row, index) => {
+      if (index < 3) {
+        return row.replace(`${index + 1}․`, `${medals[index]}`) + '\n';
+      }
+
+      return row;
+    });
+
+    return output.join().replaceAll(',', '\n');
+  });
 
   const leaderboardEmbed = new EmbedBuilder()
-    .setColor('#d4af37')
+    .setColor(getGameModeColors(chosenGameMode))
     .setTitle('__Leaderboard__')
     .addFields(
       { name: 'Game mode', value: `${gameModeInfo.icon} ${gameModeInfo.name}` },
