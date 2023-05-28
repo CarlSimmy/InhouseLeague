@@ -89,13 +89,13 @@ export async function execute(interaction) {
     if (rating >= 0 && rating <= 999) {
       return bronzeImage;
     }
-    else if (rating >= 1000 && rating <= 1299) {
+    else if (rating >= 1000 && rating <= 1250) {
       return silverImage;
     }
-    else if (rating >= 1300 && rating <= 1449) {
+    else if (rating >= 1251 && rating <= 1399) {
       return goldImage;
     }
-    else if (rating >= 1450 && rating <= 1699) {
+    else if (rating >= 1400 && rating <= 1599) {
       return platinumImage;
     }
     else {

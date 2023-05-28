@@ -107,17 +107,11 @@ export async function execute(interaction) {
 
     let result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, STANDARD_FACTOR);
 
-    if (gamesPlayed < 10) {
+    if (gamesPlayed < 15) {
       result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, PLACEMENT_FACTOR);
-      return (
-        (isBlueWinner ? result.playerRating : result.opponentRating) - (isBlueWinner ? blueMmr : redMmr)
-      );
     }
-    else if (gamesPlayed >= 10 && gamesPlayed < 20) {
+    else if (gamesPlayed >= 15 && gamesPlayed < 25) {
       result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, ADJUSTMENT_FACTOR);
-      return (
-        (isBlueWinner ? result.playerRating : result.opponentRating) - (isBlueWinner ? blueMmr : redMmr)
-      );
     }
 
     return (
