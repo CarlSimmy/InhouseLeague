@@ -6,6 +6,7 @@ import activeGame from '../lists/activeGame.js';
 import Player from '../database/models/player.js';
 import getGameModeColors from '../shared/getGameModeColors.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -19,7 +20,9 @@ export const data = new SlashCommandBuilder()
   .setDescription('Outputs a list of players who have joined the current game.');
 export async function execute(interaction) {
   if (!activeGame.players.length) {
-    return interaction.reply({ content: 'No game is active yet, use the "/newgame" command to start a new game!' });
+    return interaction.reply({
+      content: 'No game is active yet, use the "/newgame" command to start a new game!',
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   const playerInfo = Promise.all(activeGame.players.map(async (activePlayer) => {
@@ -37,5 +40,5 @@ export async function execute(interaction) {
       { name: 'Active players', value: await playerInfo || 'No players have joined yet.' },
     );
 
-  interaction.reply({ embeds: [playerListEmbed] });
+  interaction.reply({ embeds: [playerListEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 60));
 }

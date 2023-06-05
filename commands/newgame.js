@@ -5,6 +5,7 @@ import activeGame from '../lists/activeGame.js';
 import Player from '../database/models/player.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
 import sequelizeDb from '../database/connection.js';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -27,7 +28,9 @@ export const data = new SlashCommandBuilder()
   );
 export async function execute(interaction) {
   if (activeGame.players.length) {
-    return interaction.reply({ content: 'A game is already active, use the "/resetgame" command first if you want to start another game.' });
+    return interaction.reply({
+      content: 'A game is already active, use the "/resetgame" command first if you want to start another game.',
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   const chosenGameMode = interaction.options.getString('gamemode');
@@ -53,7 +56,10 @@ export async function execute(interaction) {
 
     if (activeGame.players.find(player => player.id === user.id)) {
       await userInteraction.deferReply();
-      await userInteraction.editReply({ content: `${user}, it looks like you've already joined.`, ephemeral: true });
+      await userInteraction.editReply({
+        content: `${user}, it looks like you've already joined.`,
+        ephemeral: true,
+      }).then(msg => deleteAfterSecondsDelay(msg, 30));
       return false;
     }
 
@@ -98,6 +104,7 @@ export async function execute(interaction) {
       content: `You joined the game ${btnInteraction.user}!`,
       ephemeral: true,
     });
+    deleteAfterSecondsDelay(btnInteraction, 60, true);
 
     message.edit(`Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`);
   });
@@ -111,5 +118,7 @@ export async function execute(interaction) {
 
     // Edit message button with new disabled state
     message.edit({ components: [row] });
+
+    deleteAfterSecondsDelay(message, 300);
   });
 }

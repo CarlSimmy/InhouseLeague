@@ -5,6 +5,7 @@ import sequelizeDb from '../database/connection.js';
 import Player from '../database/models/player.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
 import getGameModeColors from '../shared/getGameModeColors.js';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -60,11 +61,17 @@ export async function execute(interaction) {
   }
 
   if (chosenGameMode && !playerForGameMode) {
-    return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`, ephemeral: true });
+    return interaction.reply({
+      content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`,
+      ephemeral: true,
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   if (!playerOverall) {
-    return interaction.reply({ content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`, ephemeral: true });
+    return interaction.reply({
+      content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`,
+      ephemeral: true,
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   /* Get player standings */
@@ -122,5 +129,5 @@ export async function execute(interaction) {
       { name: 'Losses', value: losses?.toString(), inline: true },
       { name: 'Winrate', value: winrate ? `${winrate?.toString()} %` : 'N/A', inline: true });
 
-  interaction.reply({ embeds: [profileEmbed], ephemeral: true });
+  interaction.reply({ embeds: [profileEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 60));
 }

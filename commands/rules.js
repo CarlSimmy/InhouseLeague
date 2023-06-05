@@ -3,6 +3,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import getGameModeColors from '../shared/getGameModeColors.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 export const data = new SlashCommandBuilder()
   .setName('rules')
@@ -22,7 +23,7 @@ export async function execute(interaction) {
 
 
   function getShowdownRules() {
-    const rules = `
+    return `
 **Game type**
 Howling Abyss or Summoner's Rift
 Blind Pick
@@ -32,12 +33,10 @@ Blind Pick
 - Get a creep score of 100
 - Destroy the first tower
       `;
-
-    return rules;
   }
 
   function getHowlingAbyssRules() {
-    const rules = `
+    return `
 **Game type**
 Howling Abyss
 Tournament draft
@@ -61,14 +60,10 @@ All summoner spells picked in a team must be *unique*, i.e. only one flash per t
 - Trundle <:trundle:1099064061964066948>
 - Yorick <:yorick:1099065707129487491>
       `;
-
-    return rules;
   }
 
   function getSummonersRiftRules() {
-    const rules = 'No rules are currently specified for this game mode.';
-
-    return rules;
+    return 'No rules are currently specified for this game mode.';
   }
 
   function getGameModeRules() {
@@ -87,5 +82,5 @@ All summoner spells picked in a team must be *unique*, i.e. only one flash per t
     .setTitle(`${gameModeIcon} __${getGameModeInfo(chosenGameMode).name} Rules__`)
     .setDescription(getGameModeRules());
 
-  interaction.reply({ embeds: [rulesEmbed] });
+  interaction.reply({ embeds: [rulesEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 300));
 }

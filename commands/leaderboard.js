@@ -4,6 +4,7 @@ import sequelizeDb from '../database/connection.js';
 
 import Player from '../database/models/player.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -31,7 +32,9 @@ export async function execute(interaction) {
   const gameModeInfo = getGameModeInfo(chosenGameMode);
 
   if (!leaderboard.length) {
-    return interaction.reply({ content: `No leaderboard exists for ${gameModeInfo.name} yet.` });
+    return interaction.reply({
+      content: `No leaderboard exists for ${gameModeInfo.name} yet.`,
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   /*
@@ -69,5 +72,5 @@ export async function execute(interaction) {
       { name: 'Game mode', value: `${gameModeInfo.icon} ${gameModeInfo.name}` },
       { name: 'Players', value: await formattedLeaderboard });
 
-  interaction.reply({ embeds: [leaderboardEmbed] });
+  interaction.reply({ embeds: [leaderboardEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 180));
 }

@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 import TeamNames from '../database/models/teamNames.js';
 import { Sequelize } from 'sequelize';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 export const data = new SlashCommandBuilder()
   .setName('addteam')
@@ -21,7 +22,10 @@ export async function execute(interaction) {
   });
 
   if (dbItem) {
-    return interaction.reply({ content: `Sorry, but the team name **${dbItem.name}** already exists in the database.` });
+    return interaction.reply({
+      content: `Sorry, but the team name **${dbItem.name}** already exists in the database.`,
+      ephemeral: true,
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   await TeamNames.create({
@@ -30,5 +34,7 @@ export async function execute(interaction) {
     creatorName: user.username,
   });
 
-  return interaction.reply({ content: `The team name **${chosenTeamName}** has been added to the database.` });
+  return interaction.reply({
+    content: `The team name **${chosenTeamName}** has been added to the database.`,
+  }).then(msg => deleteAfterSecondsDelay(msg, 60));
 }

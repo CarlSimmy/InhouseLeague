@@ -9,6 +9,7 @@ import activeGame from '../lists/activeGame.js';
 import Player from '../database/models/player.js';
 import TeamNames from '../database/models/teamNames.js';
 import createEqualTeams from '../shared/createEqualTeams.js';
+import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -22,11 +23,15 @@ export const data = new SlashCommandBuilder()
   .setDescription('Initiate and create teams for the current inhouse game.');
 export async function execute(interaction) {
   if (activeGame.players.length === 0) {
-    return interaction.reply({ content: 'Get some more players before you start the game!' });
+    return interaction.reply({
+      content: 'Get some more players before you start the game!',
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   if (activeGame.players.length % 2 !== 0) {
-    return interaction.reply({ content: 'You need an even amount of players to start the game.' });
+    return interaction.reply({
+      content: 'You need an even amount of players to start the game.',
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
   const createdTeams = createEqualTeams(activeGame.players);
@@ -90,7 +95,10 @@ export async function execute(interaction) {
     }
 
     await userInteraction.deferReply();
-    await userInteraction.editReply({ content: 'Only team leaders can report the game result.', ephemeral: true });
+    await userInteraction.editReply({
+      content: 'Only team leaders can report the game result.',
+      ephemeral: true,
+    }).then(msg => deleteAfterSecondsDelay(msg, 30));
     return false;
   };
 
