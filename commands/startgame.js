@@ -10,6 +10,7 @@ import Player from '../database/models/player.js';
 import TeamNames from '../database/models/teamNames.js';
 import createEqualTeams from '../shared/createEqualTeams.js';
 import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
+import ratingFactor from '../shared/enums/ratingFactor.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -109,17 +110,13 @@ export async function execute(interaction) {
   });
 
   const getEloChange = (blueMmr, redMmr, gamesPlayed, isBlueWinner) => {
-    const PLACEMENT_FACTOR = 90;
-    const ADJUSTMENT_FACTOR = 60;
-    const STANDARD_FACTOR = 30;
-
-    let result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, STANDARD_FACTOR);
+    let result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, ratingFactor.STANDARD);
 
     if (gamesPlayed < 15) {
-      result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, PLACEMENT_FACTOR);
+      result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, ratingFactor.PLACEMENT);
     }
     else if (gamesPlayed >= 15 && gamesPlayed < 25) {
-      result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, ADJUSTMENT_FACTOR);
+      result = EloRating.calculate(blueMmr, redMmr, isBlueWinner, ratingFactor.ADJUSTMENT);
     }
 
     return (
