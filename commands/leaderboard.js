@@ -65,12 +65,23 @@ export async function execute(interaction) {
     return output.join().replaceAll(',', '\n');
   });
 
+  const getLeaderboardEmbed = async () => {
+    const currentLeaderboard = await formattedLeaderboard;
+    const splitLeaderBoard = currentLeaderboard.indexOf('**21․');
+    const topTwenty = currentLeaderboard.slice(0, splitLeaderBoard);
+    const afterTwenty = currentLeaderboard.slice(splitLeaderBoard);
+
+    return ({ topTwenty: topTwenty, afterTwenty: afterTwenty });
+  };
+
+  const embed = await getLeaderboardEmbed();
   const leaderboardEmbed = new EmbedBuilder()
     .setColor(getGameModeColors(chosenGameMode))
     .setTitle('__Leaderboard__')
     .addFields(
       { name: 'Game mode', value: `${gameModeInfo.icon} ${gameModeInfo.name}` },
-      { name: 'Players', value: await formattedLeaderboard });
+      { name: 'Players', value: embed.topTwenty },
+      { name: '↓', value: embed.afterTwenty });
 
   interaction.reply({ embeds: [leaderboardEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 180));
 }
