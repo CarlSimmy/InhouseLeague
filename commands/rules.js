@@ -54,6 +54,7 @@ All summoner spells picked in a team must be *unique*, i.e. only one flash per t
 **Banned champions**
 - Aatrox <:AatroxSquare:1099052046826606692>
 - Anivia <:anivia:1099052049997512704>
+- Briar <:briar:1278788502443528253>
 - Morgana <:morgana:1099075079243038750>
 - Nasus <:nasus:1099052058369327144>
 - Taric <:taric:1099052062781747250>
