@@ -37,6 +37,8 @@ export async function execute(interaction) {
     }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
+  // await SummonersRift.update({ rating: 998 }, { where: { id: 21 } });
+
   /*
     Formatting the leaderboard for better player output
     1. BestPlayer (1460)
@@ -68,20 +70,34 @@ export async function execute(interaction) {
   const getLeaderboardEmbed = async () => {
     const currentLeaderboard = await formattedLeaderboard;
     const splitLeaderBoard = currentLeaderboard.indexOf('**21․');
-    const topTwenty = currentLeaderboard.slice(0, splitLeaderBoard);
+    const topTwenty = currentLeaderboard.slice(0, splitLeaderBoard === -1 ? undefined : splitLeaderBoard);
     const afterTwenty = currentLeaderboard.slice(splitLeaderBoard);
 
-    return ({ topTwenty: topTwenty, afterTwenty: afterTwenty });
+    if (splitLeaderBoard !== -1) {
+      return ({ topTwenty: topTwenty, afterTwenty: afterTwenty });
+    }
+
+    return ({ topTwenty: topTwenty });
+  };
+
+  const getFields = () => {
+    const embedList = [
+      { name: 'Game mode', value: `${gameModeInfo.icon} ${gameModeInfo.name}` },
+      { name: 'Players', value: embed.topTwenty },
+    ];
+
+    if (embed.afterTwenty) {
+      embedList.push({ name: '↓', value: embed.afterTwenty });
+    }
+
+    return embedList;
   };
 
   const embed = await getLeaderboardEmbed();
   const leaderboardEmbed = new EmbedBuilder()
     .setColor(getGameModeColors(chosenGameMode))
     .setTitle('__Leaderboard__')
-    .addFields(
-      { name: 'Game mode', value: `${gameModeInfo.icon} ${gameModeInfo.name}` },
-      { name: 'Players', value: embed.topTwenty },
-      { name: '↓', value: embed.afterTwenty });
+    .addFields(...getFields());
 
   interaction.reply({ embeds: [leaderboardEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 180));
 }
