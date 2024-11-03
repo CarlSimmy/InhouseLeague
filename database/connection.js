@@ -1,7 +1,7 @@
-const { Sequelize } = require('sequelize');
+import { Sequelize } from 'sequelize';
 
 const sequelizeDb = new Sequelize('yourDbName', 'yourDbUser', 'yourDbPassword', {
-  host: 'yourDbHost',
+  host: 'localhost',
   dialect: 'sqlite',
   logging: false,
   storage: 'database.sqlite',
@@ -11,4 +11,4 @@ const sequelizeDb = new Sequelize('yourDbName', 'yourDbUser', 'yourDbPassword', 
   },
 });
 
-module.exports = sequelizeDb;
+export default sequelizeDb;
