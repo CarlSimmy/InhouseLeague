@@ -35,9 +35,20 @@ export async function execute(interaction) {
     }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
-  const createdTeams = createEqualTeams(activeGame.players);
-  const blueTeam = createdTeams[0];
-  const redTeam = createdTeams[1];
+  const bluePremadeTeam = activeGame.teams.blue;
+  const redPremadeTeam = activeGame.teams.red;
+  let blueTeam = [];
+  let redTeam = [];
+
+  if ((bluePremadeTeam.length > 0 && redPremadeTeam.length > 0) && (bluePremadeTeam.length === redPremadeTeam.length)) {
+    blueTeam = { players: bluePremadeTeam, totalRating: bluePremadeTeam.reduce((acc, player) => acc + player.rating, 0), name: 'TBD' };
+    redTeam = { players: redPremadeTeam, totalRating: redPremadeTeam.reduce((acc, player) => acc + player.rating, 0), name: 'TBD' };
+  }
+  else {
+    const createdTeams = createEqualTeams(activeGame.players);
+    blueTeam = createdTeams[0];
+    redTeam = createdTeams[1];
+  }
 
   blueTeam.name = await TeamNames.findOne({
     order: Sequelize.literal('random()'),
@@ -180,6 +191,8 @@ export async function execute(interaction) {
 
   collector.on('end', () => {
     activeGame.players.length = 0;
+    activeGame.teams = { blue: [], red: [] };
+
     row.components.forEach(button => button.setDisabled(true));
 
     // Edit message button with new disabled state
