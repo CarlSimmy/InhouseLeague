@@ -25,11 +25,11 @@ export async function execute(interaction) {
     }).then(msg => deleteAfterSecondsDelay(msg, 30));
   }
 
-  const playerInfo = Promise.all(activeGame.players.map(async (activePlayer) => {
+  const playerInfo = Promise.all(activeGame.players.map(async (activePlayer, index) => {
     const player = await Player.findByPk(activePlayer.id);
     const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: activePlayer.id } });
 
-    return (`${player.name} (${gameModePlayer.rating})`);
+    return (`${index}. ${player.name} (${gameModePlayer.rating})`);
   })).then(info => info.join().replaceAll(',', '\n'));
 
   const playerListEmbed = new EmbedBuilder()
