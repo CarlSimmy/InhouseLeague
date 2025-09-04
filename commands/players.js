@@ -7,6 +7,7 @@ import Player from '../database/models/player.js';
 import getGameModeColors from '../shared/getGameModeColors.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
 import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
+import Summoner from '../database/models/summoner.js';
 
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
@@ -28,8 +29,11 @@ export async function execute(interaction) {
   const playerInfo = Promise.all(activeGame.players.map(async (activePlayer, index) => {
     const player = await Player.findByPk(activePlayer.id);
     const gameModePlayer = await sequelizeDb.models[activeGame.gameMode.value].findOne({ where: { playerId: activePlayer.id } });
+    const summoner = await Summoner.findOne({
+      where: {playerId: activePlayer.id}
+    });
 
-    return (`${index}. ${player.name} (${gameModePlayer.rating})`);
+    return `${index}. ${(summoner?.summonerName && summoner?.tagLine) ? `${summoner.summonerName} #${summoner.tagLine}` : player.name} (${gameModePlayer.rating})`;
   })).then(info => info.join().replaceAll(',', '\n'));
 
   const playerListEmbed = new EmbedBuilder()
