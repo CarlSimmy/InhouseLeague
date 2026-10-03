@@ -4,8 +4,9 @@ import config from './config';
 
 const rest = new REST({ version: '9' }).setToken(config.token);
 // Routes.applicationCommands(clientId) Deletes all global commands.
-rest.get(Routes.applicationGuildCommands(config.clientId, config.guildId))
-  .then(data => {
+rest
+  .get(Routes.applicationGuildCommands(config.clientId, config.guildId))
+  .then((data) => {
     const promises = [];
     for (const command of data) {
       const deleteUrl = `${Routes.applicationGuildCommands(config.clientId, config.guildId)}/${command.id}`;

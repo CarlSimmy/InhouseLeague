@@ -14,9 +14,10 @@ for (const file of commandFiles) {
 
   if ('data' in command && 'execute' in command) {
     commandArray.push(command.data.toJSON());
-  }
-  else {
-    console.log(`[WARNING] The command ${file} is missing a required "data" or "execute" property.`);
+  } else {
+    console.log(
+      `[WARNING] The command ${file} is missing a required "data" or "execute" property.`
+    );
   }
 }
 
@@ -26,17 +27,20 @@ const rest = new REST().setToken(config.token);
 // Deploy commands
 (async () => {
   try {
-    console.log(`Started refreshing ${commandArray.length} application (/) commands.`);
+    console.log(
+      `Started refreshing ${commandArray.length} application (/) commands.`
+    );
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
       Routes.applicationGuildCommands(config.clientId, config.guildId),
-      { body: commandArray },
+      { body: commandArray }
     );
 
-    console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-  }
-  catch (error) {
+    console.log(
+      `Successfully reloaded ${data.length} application (/) commands.`
+    );
+  } catch (error) {
     console.error(error);
   }
 })();

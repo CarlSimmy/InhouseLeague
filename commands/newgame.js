@@ -13,25 +13,29 @@ import Showdown from '../database/models/showdown.js';
 import HowlingAbyss from '../database/models/howlingAbyss.js';
 import SummonersRift from '../database/models/summonersRift.js';
 import { safe } from '../shared/messageUtils.js';
-/* eslint-disable no-unused-vars */
 
 export const data = new SlashCommandBuilder()
   .setName('newgame')
   .setDescription('Starts a new LoL inhouse game.')
-  .addStringOption(option => option.setName('gamemode')
-    .setDescription('The game mode that should be played.')
-    .addChoices(
-      { name: 'Showdown', value: 'showdown' },
-      { name: 'Howling Abyss', value: 'howlingAbyss' },
-      { name: 'Summoner\'s Rift', value: 'summonersRift' },
-    )
-    .setRequired(true),
+  .addStringOption((option) =>
+    option
+      .setName('gamemode')
+      .setDescription('The game mode that should be played.')
+      .addChoices(
+        { name: 'Showdown', value: 'showdown' },
+        { name: 'Howling Abyss', value: 'howlingAbyss' },
+        { name: "Summoner's Rift", value: 'summonersRift' }
+      )
+      .setRequired(true)
   );
 export async function execute(interaction) {
   if (activeGame.players.length) {
-    return interaction.reply({
-      content: 'A game is already active, use the "/resetgame" command first if you want to start another game.',
-    }).then(msg => deleteAfterSecondsDelay(msg, 30));
+    return interaction
+      .reply({
+        content:
+          'A game is already active, use the "/resetgame" command first if you want to start another game.',
+      })
+      .then((msg) => deleteAfterSecondsDelay(msg, 30));
   }
 
   const chosenGameMode = interaction.options.getString('gamemode');
@@ -43,7 +47,7 @@ export async function execute(interaction) {
     new ButtonBuilder()
       .setCustomId('join')
       .setLabel('Join')
-      .setStyle(ButtonStyle.Primary),
+      .setStyle(ButtonStyle.Primary)
   );
 
   const message = await interaction.reply({
@@ -55,12 +59,14 @@ export async function execute(interaction) {
   const filter = async (userInteraction) => {
     const user = userInteraction.user;
 
-    if (activeGame.players.find(player => player.id === user.id)) {
+    if (activeGame.players.find((player) => player.id === user.id)) {
       await userInteraction.deferReply();
-      await userInteraction.editReply({
-        content: `${user}, it looks like you've already joined.`,
-        ephemeral: true,
-      }).then(msg => deleteAfterSecondsDelay(msg, 30));
+      await userInteraction
+        .editReply({
+          content: `${user}, it looks like you've already joined.`,
+          ephemeral: true,
+        })
+        .then((msg) => deleteAfterSecondsDelay(msg, 30));
       return false;
     }
 
@@ -77,7 +83,9 @@ export async function execute(interaction) {
   collector.on('collect', async (btnInteraction) => {
     const playerId = btnInteraction.user.id;
     const playerName = btnInteraction.user.username;
-    const gameModePlayer = await sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: playerId } });
+    const gameModePlayer = await sequelizeDb.models[chosenGameMode].findOne({
+      where: { playerId: playerId },
+    });
     const dbPlayer = await Player.findByPk(playerId);
 
     if (!dbPlayer) {
@@ -99,7 +107,11 @@ export async function execute(interaction) {
     }
 
     // Add player to the current round
-    activeGame.players.push({ id: playerId, name: playerName, rating: gameModePlayer?.rating ?? 1200 });
+    activeGame.players.push({
+      id: playerId,
+      name: playerName,
+      rating: gameModePlayer?.rating ?? 1200,
+    });
 
     btnInteraction.reply({
       content: `You joined the game ${btnInteraction.user}!`,
@@ -107,13 +119,19 @@ export async function execute(interaction) {
     });
     deleteAfterSecondsDelay(btnInteraction, 60, true);
 
-    safe(message.edit(`Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`));
+    safe(
+      message.edit(
+        `Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`
+      )
+    );
   });
 
   // TODO: Fix so I don't have to type length + 1
   collector.on('end', () => {
     if (activeGame.players.length + 1 === gameModeInfo.maxPlayers) {
-      message.reply(`Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length + 1}/${gameModeInfo.maxPlayers})`);
+      message.reply(
+        `Round is full, use the "/startgame" command when everyone is ready! (${activeGame.players.length + 1}/${gameModeInfo.maxPlayers})`
+      );
     }
     row.components[0].setDisabled(true);
 

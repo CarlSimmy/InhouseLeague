@@ -3,10 +3,18 @@ import { readdirSync } from 'fs';
 
 import config from './config.js';
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions] });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+  ],
+});
 
 client.commands = new Collection();
-const commandFiles = readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = readdirSync('./commands').filter((file) =>
+  file.endsWith('.js')
+);
 
 for (const file of commandFiles) {
   const command = await import(`./commands/${file}`);
@@ -23,8 +31,7 @@ client.once('clientReady', () => {
 // Login to Discord with your client's token
 client.login(config.token);
 
-client.on('interactionCreate', async interaction => {
-
+client.on('interactionCreate', async (interaction) => {
   // AUTOCOMPLETE HANDLER
   if (interaction.isAutocomplete()) {
     const command = client.commands.get(interaction.commandName);
@@ -33,8 +40,7 @@ client.on('interactionCreate', async interaction => {
 
     try {
       await command.autocomplete(interaction);
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
 
@@ -50,8 +56,7 @@ client.on('interactionCreate', async interaction => {
 
   try {
     await command.execute(interaction);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
 
     if (interaction.replied || interaction.deferred) {
@@ -59,8 +64,7 @@ client.on('interactionCreate', async interaction => {
         content: 'There was an error while executing this command!',
         ephemeral: true,
       });
-    }
-    else {
+    } else {
       await interaction.reply({
         content: 'There was an error while executing this command!',
         ephemeral: true,

@@ -12,23 +12,26 @@ import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 import Showdown from '../database/models/showdown.js';
 import HowlingAbyss from '../database/models/howlingAbyss.js';
 import SummonersRift from '../database/models/summonersRift.js';
-/* eslint-disable no-unused-vars */
 
 export const data = new SlashCommandBuilder()
   .setName('profile')
   .setDescription('Check your inhouse LoL profile.')
-  .addStringOption(option => option.setName('gamemode')
-    .setDescription('Outputs the profile for the specified game mode.')
-    .addChoices(
-      { name: 'Showdown', value: 'showdown' },
-      { name: 'Howling Abyss', value: 'howlingAbyss' },
-      { name: 'Summoner\'s Rift', value: 'summonersRift' },
-    )
-    .setRequired(false),
+  .addStringOption((option) =>
+    option
+      .setName('gamemode')
+      .setDescription('Outputs the profile for the specified game mode.')
+      .addChoices(
+        { name: 'Showdown', value: 'showdown' },
+        { name: 'Howling Abyss', value: 'howlingAbyss' },
+        { name: "Summoner's Rift", value: 'summonersRift' }
+      )
+      .setRequired(false)
   )
-  .addUserOption(option => option.setName('user')
-    .setDescription('Outputs the profile for the selected user.')
-    .setRequired(false),
+  .addUserOption((option) =>
+    option
+      .setName('user')
+      .setDescription('Outputs the profile for the selected user.')
+      .setRequired(false)
   );
 export async function execute(interaction) {
   const defaultUser = interaction.user;
@@ -54,24 +57,32 @@ export async function execute(interaction) {
     }
 
     if (optionsUser) {
-      return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: optionsUser.id } });
+      return sequelizeDb.models[chosenGameMode].findOne({
+        where: { playerId: optionsUser.id },
+      });
     }
 
-    return sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: defaultUser.id } });
+    return sequelizeDb.models[chosenGameMode].findOne({
+      where: { playerId: defaultUser.id },
+    });
   }
 
   if (chosenGameMode && !playerForGameMode) {
-    return interaction.reply({
-      content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`,
-      ephemeral: true,
-    }).then(msg => deleteAfterSecondsDelay(msg, 30));
+    return interaction
+      .reply({
+        content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any ${gameModeInfo.name} games yet.`,
+        ephemeral: true,
+      })
+      .then((msg) => deleteAfterSecondsDelay(msg, 30));
   }
 
   if (!playerOverall) {
-    return interaction.reply({
-      content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`,
-      ephemeral: true,
-    }).then(msg => deleteAfterSecondsDelay(msg, 30));
+    return interaction
+      .reply({
+        content: `${optionsUser || 'You'} ${optionsUser ? 'has' : 'have'} not played any games yet.`,
+        ephemeral: true,
+      })
+      .then((msg) => deleteAfterSecondsDelay(msg, 30));
   }
 
   /* Get player standings */
@@ -80,8 +91,14 @@ export async function execute(interaction) {
       return;
     }
 
-    const totalPlayersForGameMode = await sequelizeDb.models[chosenGameMode].findAll({ order: [['rating', 'DESC']] });
-    const placement = totalPlayersForGameMode.findIndex((stat) => stat.playerId === (optionsUser ? optionsUser.id : defaultUser.id)) + 1;
+    const totalPlayersForGameMode = await sequelizeDb.models[
+      chosenGameMode
+    ].findAll({ order: [['rating', 'DESC']] });
+    const placement =
+      totalPlayersForGameMode.findIndex(
+        (stat) =>
+          stat.playerId === (optionsUser ? optionsUser.id : defaultUser.id)
+      ) + 1;
     return `${placement} / ${totalPlayersForGameMode.length}`;
   }
 
@@ -95,39 +112,57 @@ export async function execute(interaction) {
 
     if (rating >= 0 && rating <= 999) {
       return bronzeImage;
-    }
-    else if (rating >= 1000 && rating <= 1250) {
+    } else if (rating >= 1000 && rating <= 1250) {
       return silverImage;
-    }
-    else if (rating >= 1251 && rating <= 1399) {
+    } else if (rating >= 1251 && rating <= 1399) {
       return goldImage;
-    }
-    else if (rating >= 1400 && rating <= 1599) {
+    } else if (rating >= 1400 && rating <= 1599) {
       return platinumImage;
-    }
-    else {
+    } else {
       return diamondImage;
     }
   }
 
   /* Setting player stat variables based on if a gamemode is chosen or not */
   const rating = chosenGameMode ? Number(playerForGameMode.rating) : null;
-  const wins = chosenGameMode ? playerForGameMode.wins : playerOverall.totalWins;
-  const losses = chosenGameMode ? playerForGameMode.losses : playerOverall.totalLosses;
+  const wins = chosenGameMode
+    ? playerForGameMode.wins
+    : playerOverall.totalWins;
+  const losses = chosenGameMode
+    ? playerForGameMode.losses
+    : playerOverall.totalLosses;
   const winrate = Math.round((wins / (wins + losses)) * 100) || null;
   const playerStanding = await getPlayerStanding();
 
   const profileEmbed = new EmbedBuilder()
     .setColor(getGameModeColors(chosenGameMode))
-    .setTitle(`__${optionsUser?.username || interaction.member.user.username}'s stats__`)
+    .setTitle(
+      `__${optionsUser?.username || interaction.member.user.username}'s stats__`
+    )
     .setImage(getRankImage(rating))
     .addFields(
-      { name: 'Game mode', value: `${gameModeInfo.icon || ''} ${gameModeInfo.name || 'Overall'}` },
-      { name: 'Rating', value: rating?.toString() || 'No overall rating exists.' },
-      { name: 'Current placement', value: playerStanding || 'No overall placement exists.' },
+      {
+        name: 'Game mode',
+        value: `${gameModeInfo.icon || ''} ${gameModeInfo.name || 'Overall'}`,
+      },
+      {
+        name: 'Rating',
+        value: rating?.toString() || 'No overall rating exists.',
+      },
+      {
+        name: 'Current placement',
+        value: playerStanding || 'No overall placement exists.',
+      },
       { name: 'Wins', value: wins?.toString(), inline: true },
       { name: 'Losses', value: losses?.toString(), inline: true },
-      { name: 'Winrate', value: winrate ? `${winrate?.toString()} %` : 'N/A', inline: true });
+      {
+        name: 'Winrate',
+        value: winrate ? `${winrate?.toString()} %` : 'N/A',
+        inline: true,
+      }
+    );
 
-  interaction.reply({ embeds: [profileEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 60));
+  interaction
+    .reply({ embeds: [profileEmbed] })
+    .then((msg) => deleteAfterSecondsDelay(msg, 60));
 }

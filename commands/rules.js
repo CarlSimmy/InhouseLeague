@@ -8,19 +8,20 @@ import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 export const data = new SlashCommandBuilder()
   .setName('rules')
   .setDescription('Check the inhouse LoL rules.')
-  .addStringOption(option => option.setName('gamemode')
-    .setDescription('Outputs the rules for a specific game mode.')
-    .addChoices(
-      { name: 'Showdown', value: 'showdown' },
-      { name: 'Howling Abyss', value: 'howlingAbyss' },
-      { name: 'Summoner\'s Rift', value: 'summonersRift' },
-    )
-    .setRequired(true),
+  .addStringOption((option) =>
+    option
+      .setName('gamemode')
+      .setDescription('Outputs the rules for a specific game mode.')
+      .addChoices(
+        { name: 'Showdown', value: 'showdown' },
+        { name: 'Howling Abyss', value: 'howlingAbyss' },
+        { name: "Summoner's Rift", value: 'summonersRift' }
+      )
+      .setRequired(true)
   );
 export async function execute(interaction) {
   const chosenGameMode = interaction.options.getString('gamemode');
   const gameModeIcon = getGameModeInfo(chosenGameMode).icon;
-
 
   function getShowdownRules() {
     return `
@@ -69,19 +70,23 @@ All summoner spells picked in a team must be *unique*, i.e. only one flash per t
 
   function getGameModeRules() {
     switch (chosenGameMode) {
-    case 'showdown':
-      return getShowdownRules();
-    case 'howlingAbyss':
-      return getHowlingAbyssRules();
-    case 'summonersRift':
-      return getSummonersRiftRules();
+      case 'showdown':
+        return getShowdownRules();
+      case 'howlingAbyss':
+        return getHowlingAbyssRules();
+      case 'summonersRift':
+        return getSummonersRiftRules();
     }
   }
 
   const rulesEmbed = new EmbedBuilder()
     .setColor(getGameModeColors(chosenGameMode))
-    .setTitle(`${gameModeIcon} __${getGameModeInfo(chosenGameMode).name} Rules__`)
+    .setTitle(
+      `${gameModeIcon} __${getGameModeInfo(chosenGameMode).name} Rules__`
+    )
     .setDescription(getGameModeRules());
 
-  interaction.reply({ embeds: [rulesEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 300));
+  interaction
+    .reply({ embeds: [rulesEmbed] })
+    .then((msg) => deleteAfterSecondsDelay(msg, 300));
 }

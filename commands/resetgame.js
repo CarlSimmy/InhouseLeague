@@ -9,5 +9,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction) {
   activeGame.players.length = 0;
 
-  interaction.reply({ content: 'The current game has been successfully reset.' }).then(msg => deleteAfterSecondsDelay(msg, 30));
+  interaction
+    .reply({ content: 'The current game has been successfully reset.' })
+    .then((msg) => deleteAfterSecondsDelay(msg, 30));
 }

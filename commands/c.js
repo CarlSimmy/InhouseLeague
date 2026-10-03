@@ -10,16 +10,15 @@ import { safe } from '../shared/messageUtils.js';
 export const data = new SlashCommandBuilder()
   .setName('c')
   .setDescription('Pick or ban a champion')
-  .addStringOption(option =>
+  .addStringOption((option) =>
     option
       .setName('champion')
       .setDescription('Search champion')
       .setRequired(true)
-      .setAutocomplete(true),
+      .setAutocomplete(true)
   );
 
 export async function autocomplete(interaction) {
-
   const draft = getDraft(interaction.channelId);
 
   if (!draft) return interaction.respond([]);
@@ -30,27 +29,23 @@ export async function autocomplete(interaction) {
 
   if (!focused) {
     results = draft.available.slice(0, 5);
-  }
-  else {
+  } else {
     results = draft.fuse
       .search(focused)
-      .map(r => r.item)
-      .filter(champ =>
-        draft.available.some(c => c.id === champ.id),
-      )
+      .map((r) => r.item)
+      .filter((champ) => draft.available.some((c) => c.id === champ.id))
       .slice(0, 5);
   }
 
   await interaction.respond(
-    results.map(champ => ({
+    results.map((champ) => ({
       name: champ.name,
       value: champ.id,
-    })),
+    }))
   );
 }
 
 export async function execute(interaction) {
-
   const draft = getDraft(interaction.channelId);
 
   if (!draft) {
@@ -71,7 +66,7 @@ export async function execute(interaction) {
 
   if (!isCorrectPlayer(interaction.user.id, turn.team)) {
     return interaction.reply({
-      content: 'It\'s not your teams turn.',
+      content: "It's not your teams turn.",
       ephemeral: true,
     });
   }
@@ -84,7 +79,7 @@ export async function execute(interaction) {
   }
 
   const championId = interaction.options.getString('champion');
-  const champion = draft.available.find(c => c.id === championId);
+  const champion = draft.available.find((c) => c.id === championId);
 
   if (!champion) {
     return interaction.reply({
@@ -100,8 +95,7 @@ export async function execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
     await applySelection(draft, interaction.channel, champion);
     await safe(interaction.deleteReply());
-  }
-  finally {
+  } finally {
     draft.pickInProgress = false;
   }
 }

@@ -9,9 +9,11 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   if (getDraft(interaction.channelId)) {
-    return interaction.reply({
-      content: 'A draft is already running in this channel!',
-    }).then(msg => deleteAfterSecondsDelay(msg, 30));
+    return interaction
+      .reply({
+        content: 'A draft is already running in this channel!',
+      })
+      .then((msg) => deleteAfterSecondsDelay(msg, 30));
   }
 
   await interaction.deferReply({ ephemeral: true });
@@ -23,7 +25,7 @@ export async function execute(interaction) {
   await sendTemp(interaction.channel, 'Draft initiated');
   await sendTemp(
     interaction.channel,
-    `${PHASE_DIVIDER}Starting **First BAN phase**${PHASE_DIVIDER}`,
+    `${PHASE_DIVIDER}Starting **First BAN phase**${PHASE_DIVIDER}`
   );
 
   await startTurn(draft, interaction.channel);
