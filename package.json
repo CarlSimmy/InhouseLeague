@@ -9,12 +9,14 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
-    "discord.js": "^14.9.0",
+    "discord.js": "^14.27.0",
     "elo-rating": "^1.0.1",
-    "sequelize": "^6.31.0",
-    "sqlite3": "^5.1.6"
+    "fuse.js": "^7.5.0",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
-    "eslint": "^8.39.0"
+    "eslint": "^10.12.0",
+    "nodemon": "^3.1.14"
   }
 }
