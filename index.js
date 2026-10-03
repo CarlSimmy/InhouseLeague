@@ -24,7 +24,25 @@ client.once('ready', () => {
 client.login(config.token);
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return;
+
+  // AUTOCOMPLETE HANDLER
+  if (interaction.isAutocomplete()) {
+    const command = client.commands.get(interaction.commandName);
+
+    if (!command?.autocomplete) return;
+
+    try {
+      await command.autocomplete(interaction);
+    }
+    catch (error) {
+      console.error(error);
+    }
+
+    return;
+  }
+
+  // SLASH COMMAND HANDLER
+  if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
 
@@ -35,6 +53,18 @@ client.on('interactionCreate', async interaction => {
   }
   catch (error) {
     console.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({
+        content: 'There was an error while executing this command!',
+        ephemeral: true,
+      });
+    }
+    else {
+      await interaction.reply({
+        content: 'There was an error while executing this command!',
+        ephemeral: true,
+      });
+    }
   }
 });

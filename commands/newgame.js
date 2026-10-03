@@ -12,6 +12,7 @@ import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
 import Showdown from '../database/models/showdown.js';
 import HowlingAbyss from '../database/models/howlingAbyss.js';
 import SummonersRift from '../database/models/summonersRift.js';
+import { safe } from '../shared/messageUtils.js';
 /* eslint-disable no-unused-vars */
 
 export const data = new SlashCommandBuilder()
@@ -106,7 +107,7 @@ export async function execute(interaction) {
     });
     deleteAfterSecondsDelay(btnInteraction, 60, true);
 
-    message.edit(`Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`);
+    safe(message.edit(`Press the button below to join the next ${gameModeInfo.name} game. (${activeGame.players.length}/${gameModeInfo.maxPlayers})`));
   });
 
   // TODO: Fix so I don't have to type length + 1
@@ -117,7 +118,7 @@ export async function execute(interaction) {
     row.components[0].setDisabled(true);
 
     // Edit message button with new disabled state
-    message.edit({ components: [row] });
+    safe(message.edit({ components: [row] }));
 
     deleteAfterSecondsDelay(message, 300);
   });

@@ -1,10 +1,12 @@
+import { safe } from './messageUtils.js';
+
 const deleteAfterSecondsDelay = (message, delay, isButton = false) => {
   setTimeout(() => {
     if (isButton) {
-      message.deleteReply();
+      safe(message.deleteReply());
     }
     else {
-      message.delete();
+      safe(message.delete());
     }
   }, delay * 1000);
 };

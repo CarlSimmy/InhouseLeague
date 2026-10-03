@@ -17,6 +17,7 @@ import ratingFactor from '../shared/enums/ratingFactor.js';
 import Showdown from '../database/models/showdown.js';
 import HowlingAbyss from '../database/models/howlingAbyss.js';
 import SummonersRift from '../database/models/summonersRift.js';
+import { safe } from '../shared/messageUtils.js';
 /* eslint-disable no-unused-vars */
 
 export const data = new SlashCommandBuilder()
@@ -48,6 +49,9 @@ export async function execute(interaction) {
     const createdTeams = createEqualTeams(activeGame.players);
     blueTeam = createdTeams[0];
     redTeam = createdTeams[1];
+
+    activeGame.teams.blue.push(...blueTeam.players);
+    activeGame.teams.red.push(...redTeam.players);
   }
 
   blueTeam.name = await TeamNames.findOne({
@@ -88,17 +92,29 @@ export async function execute(interaction) {
     new ButtonBuilder()
       .setCustomId('blue-wins')
       .setLabel('Blue Team Wins')
-      .setStyle(ButtonStyle.Primary),
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(true),
     new ButtonBuilder()
       .setCustomId('red-wins')
       .setLabel('Red Team Wins')
-      .setStyle(ButtonStyle.Danger));
+      .setStyle(ButtonStyle.Danger)
+      .setDisabled(true));
 
   const message = await interaction.reply({
     embeds: [blueTeamEmbed, redTeamEmbed],
     components: [row],
     fetchReply: true,
   });
+
+  // Enable buttons after 5 minutes to prevent misinputs.
+  setTimeout(async () => {
+    row.components.forEach(button => button.setDisabled(false));
+
+    safe(await message.edit({
+      components: [row],
+    }));
+
+  }, 5 * 60 * 1000);
 
   // Only team leaders and me can click the buttons to report result.
   const filter = async (userInteraction) => {
@@ -196,6 +212,6 @@ export async function execute(interaction) {
     row.components.forEach(button => button.setDisabled(true));
 
     // Edit message button with new disabled state
-    message.edit({ embeds: [blueTeamEmbed, redTeamEmbed], components: [row] });
+    safe(message.edit({ embeds: [blueTeamEmbed, redTeamEmbed], components: [row] }));
   });
 }

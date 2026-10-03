@@ -69,12 +69,16 @@ export async function execute(interaction) {
 
   const getLeaderboardEmbed = async () => {
     const currentLeaderboard = await formattedLeaderboard;
-    const splitLeaderBoard = currentLeaderboard.indexOf('**21․');
-    const topTwenty = currentLeaderboard.slice(0, splitLeaderBoard === -1 ? undefined : splitLeaderBoard);
-    const afterTwenty = currentLeaderboard.slice(splitLeaderBoard);
+    const splitLeaderBoardFirst = currentLeaderboard.indexOf('**21․');
+    const splitLeaderboardSecond = currentLeaderboard.indexOf('**41․');
+    const splitLeaderboardThird = currentLeaderboard.indexOf('**61․');
+    const topTwenty = currentLeaderboard.slice(0, splitLeaderBoardFirst === -1 ? undefined : splitLeaderBoardFirst);
+    const nextTwenty = currentLeaderboard.slice(splitLeaderBoardFirst, splitLeaderboardSecond);
+    const thirdTwenty = currentLeaderboard.slice(splitLeaderboardSecond, splitLeaderboardThird);
+    const final = currentLeaderboard.slice(splitLeaderboardThird);
 
-    if (splitLeaderBoard !== -1) {
-      return ({ topTwenty: topTwenty, afterTwenty: afterTwenty });
+    if (splitLeaderBoardFirst !== -1 || splitLeaderboardSecond !== -1 || splitLeaderboardThird !== -1) {
+      return ({ topTwenty: topTwenty, nextTwenty: nextTwenty, thirdTwenty: thirdTwenty, final: final });
     }
 
     return ({ topTwenty: topTwenty });
@@ -86,8 +90,16 @@ export async function execute(interaction) {
       { name: 'Players', value: embed.topTwenty },
     ];
 
-    if (embed.afterTwenty) {
-      embedList.push({ name: '↓', value: embed.afterTwenty });
+    if (embed.nextTwenty) {
+      embedList.push({ name: '↓', value: embed.nextTwenty });
+    }
+
+    if (embed.thirdTwenty) {
+      embedList.push({ name: '↓', value: embed.thirdTwenty });
+    }
+
+    if (embed.final) {
+      embedList.push({ name: '↓', value: embed.final });
     }
 
     return embedList;
@@ -96,7 +108,7 @@ export async function execute(interaction) {
   const embed = await getLeaderboardEmbed();
   const leaderboardEmbed = new EmbedBuilder()
     .setColor(getGameModeColors(chosenGameMode))
-    .setTitle('__Leaderboard__')
+    .setTitle('__Leaderboard - Season 2__')
     .addFields(...getFields());
 
   interaction.reply({ embeds: [leaderboardEmbed] }).then(msg => deleteAfterSecondsDelay(msg, 180));

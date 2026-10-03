@@ -2,5 +2,6 @@ node_modules
 .env
 .vscode
 config.js
-database.sqlite
+sync.js
+database*.sqlite
 TEST*
