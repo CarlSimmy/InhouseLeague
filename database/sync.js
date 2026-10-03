@@ -7,6 +7,7 @@ import HowlingAbyss from './models/howlingAbyss.js';
 import Showdown from './models/showdown.js';
 import SummonersRift from './models/summonersRift.js';
 import TeamNames from './models/teamNames.js';
+import Summoner from './models/summoner.js';
 
 /* Drops the current database and syncs all of the models */
 sequelizeDb.sync({ force: true });
@@ -17,5 +18,6 @@ Match.sync({ alter: true });
 SummonersRift.sync({ alter: true });
 HowlingAbyss.sync({ alter: true });
 Showdown.sync({ alter: true });
+Summoner.sync({ alter: true });
 TeamNames.sync({ alter: true });*/
 

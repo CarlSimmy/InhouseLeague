@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle,ModalBuilder,TextInputBuilder,TextInputStyle  } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
 import activeGame from '../lists/activeGame.js';
@@ -6,7 +6,8 @@ import Player from '../database/models/player.js';
 import getGameModeInfo from '../shared/getGameModeInfo.js';
 import sequelizeDb from '../database/connection.js';
 import deleteAfterSecondsDelay from '../shared/deleteAfterDelay.js';
-
+import Summoner from '../database/models/summoner.js';
+import modalModule from '../database/models/modal.js';
 // The models are used dynamically
 /* eslint-disable no-unused-vars */
 import Showdown from '../database/models/showdown.js';
@@ -78,7 +79,9 @@ export async function execute(interaction) {
     const playerId = btnInteraction.user.id;
     const playerName = btnInteraction.user.username;
     const gameModePlayer = await sequelizeDb.models[chosenGameMode].findOne({ where: { playerId: playerId } });
+    const summonerNamePlayer = await Summoner.findOne({ where: { playerId:playerId } });
     const dbPlayer = await Player.findByPk(playerId);
+
 
     if (!dbPlayer) {
       await Player.create({
@@ -87,6 +90,19 @@ export async function execute(interaction) {
         totalWins: 0,
         totalLosses: 0,
       });
+    }
+    if (!summonerNamePlayer){
+        const modalResult = await modalModule.run({ interaction: btnInteraction });
+
+        if (modalResult) {
+                    await Summoner.create({
+                        playerId,
+                        summonerName: modalResult.summonerName,
+                        tagLine: modalResult.tagLine
+                    });
+                    console.log(`Sparade ${modalResult.summonerName}#${modalResult.tagLine} i DB för ${playerId}`);
+                }
+                return;
     }
 
     if (!gameModePlayer) {
@@ -97,9 +113,9 @@ export async function execute(interaction) {
         playerId: playerId,
       });
     }
-
     // Add player to the current round
-    activeGame.players.push({ id: playerId, name: playerName, rating: gameModePlayer?.rating ?? 1200 });
+    const summoner = await Summoner.findOne({ where: { playerId } });
+    activeGame.players.push({ id: playerId, name: playerName, rating: gameModePlayer?.rating ?? 1200, summonerName: summoner.summonerName, summonerTag: summoner.tagLine });
 
     btnInteraction.reply({
       content: `You joined the game ${btnInteraction.user}!`,

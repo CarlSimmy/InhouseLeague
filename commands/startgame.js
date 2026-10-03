@@ -76,16 +76,16 @@ export async function execute(interaction) {
     .setColor('#4752c4')
     .setTitle(`__${blueTeamLeader.name}'s ${blueTeam.name}__`)
     .setDescription(
-      `**Spelare:**
-        ${blueTeam.players.map(player => player.name).join().replaceAll(',', '\n')}`)
+          `**Spelare:**
+    ${blueTeam.players.map(player => `${(player?.summonerName && player?.tagLine) ?  `${player.summonerName} #${player.tagLine}`: player.name  }`).join('\n')}`)
     .setFooter({ text: `Calculated MMR: ${blueTeam.totalRating}` });
 
   const redTeamEmbed = new EmbedBuilder()
     .setColor('#d53b3e')
     .setTitle(`__${redTeamLeader.name}'s ${redTeam.name}__`)
     .setDescription(
-      `**Spelare:**
-        ${redTeam.players.map(player => player.name).join().replaceAll(',', '\n')}`)
+          `**Spelare:**
+    ${redTeam.players.map(player => `${(player?.summonerName && player?.tagLine) ?  `${player.summonerName} #${player.tagLine}`: player.name  }`).join('\n')}`)
     .setFooter({ text: `Calculated MMR: ${redTeam.totalRating}` });
 
   const row = new ActionRowBuilder().addComponents(
